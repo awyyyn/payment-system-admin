@@ -10,7 +10,7 @@ export default function Record() {
   const [client, setClient] = useState({});
   const [loading, setLoading] = useState(true); 
   const [total, setTotal] = useState(0) 
-  const [loan, setLoan] = useState()
+  const [loan, setLoan] = useState({})
   const [payments, setPayments] = useState({})
    
 
@@ -21,12 +21,12 @@ export default function Record() {
         
         if(error) throw error
         // console.log(data)
-        setLoan(client?.loans_table?.filter((d) => d.is_paid != true))
-        // console.log(loan)
-        setPayments(client?.payments_table?.filter(d => d.loan == loan[0].id))
         setClient(data)
+        setLoan(data?.loans_table?.filter((d) => d.is_paid != true).pop())
+        // console.log(loan)
+        setPayments(data?.payments_table?.filter(d => d.loan == loan?.id))
+        
         setLoading(false)
-
       } catch (error) {
         console.log(error)
         setLoading(false)
@@ -36,9 +36,8 @@ export default function Record() {
     getClient(); 
 
   }, [])
-
-  console.log("DATA", payments)
   
+  console.log(payments)
  
   return (
     <div className="md:px-20">
@@ -59,28 +58,28 @@ export default function Record() {
           <label className="label">
             <span className="label-text">First Name</span> 
           </label>
-          <input type="text" value={loading ? '...' : client.first_name} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : client?.first_name} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
 
         <div className="form-control w-full max-w-xs">
           <label className="label">
             <span className="label-text">Middle Name</span> 
           </label>
-          <input type="text" value={loading ? '...' : client.middle_name} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : client?.middle_name} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
 
         <div className="form-control w-full max-w-xs ">
           <label className="label">
             <span className="label-text">Last Name</span> 
           </label>
-          <input type="text" value={loading ? '...' : client.last_name} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : client?.last_name} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
         
         <div className="form-control w-full max-w-xs">
           <label className="label">
             <span className="label-text">Contact Number</span> 
           </label>
-          <input type="text" value={loading ? '...' : client.contact} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : client?.contact} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
       </div>
 
@@ -89,7 +88,7 @@ export default function Record() {
           <label className="label">
             <span className="label-text">Email Address</span> 
           </label>
-          <input type="text" value={loading ? '...' : client.email} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : client?.email} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
 
 
@@ -97,14 +96,14 @@ export default function Record() {
           <label className="label">
             <span className="label-text">Date Joined</span> 
           </label>
-          <input type="text" value={loading ? '...' : new Date(client.created_at).toLocaleDateString()} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : new Date(client?.created_at).toLocaleDateString()} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
 
         <div className="form-control w-full max-w-xs ">
           <label className="label">
             <span className="label-text">Amount Loan</span> 
           </label>
-          <input type="text" value={loading ? '...' : `₱ ${client?.loans_table[0]?.amount_loan ? client?.loans_table[0]?.amount_loan : 0 }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ? loan?.amount_loan : 0}`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
 
         <div className="form-control w-full max-w-xs">
@@ -117,92 +116,100 @@ export default function Record() {
       </div> 
 
 
-      
-      <dialog id="my_modal_3" className="modal">
-        <form method="dialog" className="modal-box">
-          <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          <h3 className="font-bold text-lg">Payment History</h3>
-          <div className="overflow-x-auto">
-            <table className="table">
-              {/* head */}
-              <thead>
-                <tr> 
-                  <th className="text-center">Date</th>
-                  <th className="text-center">Amount</th> 
-                  <th className="text-center">Status</th> 
-                </tr>
-              </thead>
-              <tbody>
-                {/* row 1 */}
-                {client?.loans_table?.length == 0 ?
-                  <tr>  
+      {
+        !loading &&
+        <dialog id="my_modal_3" className="modal">
+          <form method="dialog" className="modal-box">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            <h3 className="font-bold text-lg">Payment History</h3>
+            <div className="overflow-x-auto">
+              <table className="table">
+                {/* head */}
+                <thead>
+                  <tr> 
+                    <th className="text-center">Date</th>
+                    <th className="text-center">Amount</th> 
+                    <th className="text-center">Status</th> 
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* row 1 */}
+                  {client?.loans_table?.length == 0 ?
+                    <tr>  
                       <td className="text-center" colSpan={2}>No Active Loan</td> 
                     </tr> 
-                : 
-                   payments?.map(payment => (
-                    <tr key={payment.id}> 
-                      <td className="text-center">{loading ? '...' : payment?.date}</td>
-                      <td className="text-center">{loading ? '...' : ` ₱ ${payment?.amount}`}</td> 
-                      <td className={` ${loan?.is_paid ? 'text-green-700' : 'text-red-500'} text-center font-bold`}>{loading ? '...' : payment?.is_paid ? 'Paid' : '...'}</td> 
+                  : 
+                    loan.id && payments?.length == 0 ?
+                      <h1>Not found</h1>
+                    :   
+                    payments?.map(payment => (
+                      <tr key={payment?.id}> 
+                        <td className="text-center">{loading ? '...' : payment?.date}</td>
+                        <td className="text-center">{loading ? '...' : ` ₱ ${payment?.amount}`}</td> 
+                        <td className={` ${payment?.is_paid ? 'text-green-700' : 'text-red-500'} text-center font-bold`}>{loading ? '...' : payment?.is_paid ? 'Paid' : '...'}</td> 
+                      </tr> 
+                    ))  
+                  }
+                  {/* {loading ? 
+                    <tr><td colSpan={2} className="text-center">Fetching Data</td></tr> : 
+                    client?.loans_table?.length > 0 &&
+                    <tr>
+                      <td className="text-center">Total Paid Amount</td>
+                      <td className="text-center font-bold text-lg">₱ {loading ? '...' : !loading &&  total}</td>
                     </tr> 
-                  ))
-                }
-                {/* {loading ? 
-                  <tr><td colSpan={2} className="text-center">Fetching Data</td></tr> : 
-                  client?.loans_table?.length > 0 &&
-                  <tr>
-                    <td className="text-center">Total Paid Amount</td>
-                    <td className="text-center font-bold text-lg">₱ {loading ? '...' : !loading &&  total}</td>
-                  </tr> 
-                } */}
-              </tbody>
-            </table> 
-          </div>
-        </form>
-      </dialog>
+                  } */}
+                </tbody>
+              </table> 
+            </div>
+          </form>
+        </dialog>
+      }
 
-      <dialog id="my_modal_2" className="modal">
-        <form method="dialog" className="modal-box">
-          <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-          <h3 className="font-bold text-lg">Loan History</h3>
-          <div className="overflow-x-auto">
-            <table className="table">
-              {/* head */}
-              <thead>
-                <tr> 
-                  <th className="text-center">Date</th>
-                  <th className="text-center">Amount</th> 
-                  <th className="text-center">Status</th> 
-                </tr>
-              </thead>
-              <tbody>
-                {/* row 1 */}
-                {client?.loans_table?.length == 0 ?
-                  <tr>  
-                      <td className="text-center" colSpan={2}>No Active Loan</td> 
+      {!loading &&
+        <dialog id="my_modal_2" className="modal">
+          <form method="dialog" className="modal-box">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            <h3 className="font-bold text-lg">Loan History</h3>
+            <div className="overflow-x-auto">
+              <table className="table">
+                {/* head */}
+                <thead>
+                  <tr> 
+                    <th className="text-center">Date</th>
+                    <th className="text-center">Amount</th> 
+                    <th className="text-center">Status</th> 
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* row 1 */}
+                  {client?.loans_table?.length == 0 ?
+                    <tr>  
+                        <td className="text-center" colSpan={2}>No Active Loan</td> 
+                      </tr> 
+                  :  
+                    client?.loans_table?.map(loan => (
+                      <tr key={loan.id}> 
+                        <td className="text-center">{loading ? '...' : new Date(loan.created_at).toDateString()}</td>
+                        <td className="text-center">{loading ? '...' : `₱ ${loan.amount_loan}`}</td> 
+                        <td className={` ${loan?.is_paid ? 'text-green-700' : 'text-red-500'} font-bold`}>{loading ? '...' : loan.is_paid ? 'Paid' : 'Pending'}</td> 
+                      </tr> 
+                    ))
+                  }
+                  {/* {loading ? 
+                    <tr><td colSpan={2} className="text-center">Fetching Data</td></tr> : 
+                    client?.loans_table?.length > 0 &&
+                    <tr>
+                      <td className="text-center">Total Paid Amount</td>
+                      <td className="text-center font-bold text-lg">₱ {loading ? '...' : !loading &&  total}</td>
                     </tr> 
-                :  
-                  client?.loans_table?.map(loan => (
-                    <tr key={loan.id}> 
-                      <td className="text-center">{loading ? '...' : new Date(loan.created_at).toDateString()}</td>
-                      <td className="text-center">{loading ? '...' : `₱ ${loan.amount_loan}`}</td> 
-                      <td className={` ${loan?.is_paid ? 'text-green-700' : 'text-red-500'} font-bold`}>{loading ? '...' : loan.is_paid ? 'Paid' : 'Pending'}</td> 
-                    </tr> 
-                  ))
-                }
-                {/* {loading ? 
-                  <tr><td colSpan={2} className="text-center">Fetching Data</td></tr> : 
-                  client?.loans_table?.length > 0 &&
-                  <tr>
-                    <td className="text-center">Total Paid Amount</td>
-                    <td className="text-center font-bold text-lg">₱ {loading ? '...' : !loading &&  total}</td>
-                  </tr> 
-                } */}
-              </tbody>
-            </table> 
-          </div>
-        </form>
-      </dialog>
+                  } */}
+                </tbody>
+              </table> 
+            </div>
+          </form>
+        </dialog>
+      }
+
     </div>
   )
 }
