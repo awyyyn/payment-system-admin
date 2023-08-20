@@ -7,9 +7,22 @@ import PaymentLedger from "./pages/PaymentLedger"
 import Message from "./pages/Message" 
 import Record from "./pages/Record"
 import AddPayment from "./pages/AddPayment"
+import { useEffect } from "react"
+import supabase from "./lib/supabase"
+import AddLoan from "./pages/AddLoan"
 
 function App() {
   
+  useEffect(() => {
+    async function getSession () {      
+      const { data } = await supabase.auth.getUser()
+      console.log(data)
+    } 
+
+    getSession(); 
+  }, [])
+  
+
   const router = createBrowserRouter([
     {
       element: <Layout />,
@@ -28,11 +41,15 @@ function App() {
           element: <PaymentLedger />
         },
         {
+          path: '/create-loan',
+          element: <AddLoan />
+        },
+        {
           path: '/message',
           element: <Message />
         },
         {
-          path: '/add-payment',
+          path: '/create-payment',
           element: <AddPayment />
         },
         {

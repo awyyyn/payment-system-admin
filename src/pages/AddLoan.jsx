@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import supabase from "../lib/supabase";
 
  
 
-const AddPayment = () => {
+const AddLoan = () => {
 
     const [clients, setClients] = useState([]);
     const [filtered, setFiltered] = useState(clients);
@@ -11,9 +11,10 @@ const AddPayment = () => {
     const [paying, setPaying] = useState(false);
     const [search, setSearch] = useState("");
     const [client, setClient] = useState({});
-    const [amount, setAmount] = useState("");
+    const [amount, setAmount] = useState(""); 
     const [notify, setNotify] = useState(false);
-    const [smsErr, setSmsErr] = useState(false)
+    const [smsErr, setSmsErr] = useState(false);
+    const [done, setDone] = useState(false);
     const [err, setErr] = useState({
         nameErr: false,
         amountErr: false,
@@ -21,19 +22,21 @@ const AddPayment = () => {
     })
 
     useEffect(() => { 
-        async function getClients() {
+        async function getClients() { 
             try {
-                const { data, error } = await supabase.from('clients_table').select(`*, payments_table(*), loans_table(*)`).eq('loans_table.is_paid', false)
-                setClients(data.filter(data => data.loans_table?.length !== 0))
-                if(error) throw error;
-                setLoading(false)
+                const { data, error } = await supabase.from('clients_table').select(`*, loans_table(*)`)  
+                setClients(data?.filter(l => !l?.loans_table?.some(item =>  item.is_paid == false )) )  
+                setFiltered(clients)
+                if(error) throw error; 
+                setLoading(false) 
+                setDone(p => !p)    
             } catch (error) {
                 console.log(error)
                 setLoading(false)
             }
         } 
         getClients(); 
-    }, [])
+    }, [done])
 
     useEffect(() => {
         setFiltered(clients?.filter(client => client.first_name.toLowerCase().includes(search.toLowerCase()) || client.last_name.toLowerCase().includes(search.toLowerCase()) ))
@@ -54,6 +57,14 @@ const AddPayment = () => {
         } 
     }
 
+    
+    function addDays(date, days){
+        let preDate = new Date(date);
+        let dateCopy = new Date(date);
+        dateCopy.setDate(preDate.getDate() + days)
+        return dateCopy.toDateString()
+    }
+
     const handleSubmit = async () => { 
         if(!client.first_name) setErr((p) => ({...p, nameErr: true, contactErr: true})) 
         amountValidation(amount)
@@ -61,10 +72,12 @@ const AddPayment = () => {
             return 
         } 
         setPaying(true); 
-        const message = `You pay ${amount} pesos. ${new Date().toLocaleString()}.`
+        const total = (Number(amount) / 7) + 143;
+        const fixedAmount = String(total).includes('.') ? String(total).split('.')[0] : total;
+        const message = `Your application for ${amount} pesos loan has been approved. ${new Date().toLocaleString()}.`
         try {
             const phone = client.contact.slice(1) 
-            const res = await fetch('http://localhost:3000/send-sms', {
+            const res = await fetch('https://twilio-sms-ow78.onrender.com/send-sms', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -77,17 +90,34 @@ const AddPayment = () => {
 
             const data = await res.json(); 
 
-            await supabase.from('payments_table').insert({client_id: client.uuid, amount});
-            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount, message})
+            /* INSERT DATA TO LOANS_TABLE */
+            const { data: loanRes } = await supabase.from('loans_table').insert({client_id: client.uuid, amount_loan: amount}).select().single()
+            
+            await supabase.from('payments_table').insert([
+                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 16)},
+                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 36)},
+                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 41)},
+                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 61)},
+                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 76)},
+                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 91)},
+                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 106)},
+            ]) 
+            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount, message, is_loan: true}); 
 
-            if(data.status === 400) {   
-                setSmsErr(true);  
-                setPaying(false);   
+            setClient({})
+            /* SMS ERROR */
+            if(data.status === 400) {  
+
+                setSmsErr(true); 
+    
+                setPaying(false);  
+                
                 return  setTimeout(() => setSmsErr(false), 3000)
             }
             
             setNotify(true) 
             setPaying(false);  
+
             setAmount("")
             setTimeout(() => { 
                 setNotify(false)
@@ -99,9 +129,7 @@ const AddPayment = () => {
         }
 
     }
-
-
-
+ 
     return ( 
         <>
             <div className={`fixed bg-green-500 right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white ${notify ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
@@ -111,7 +139,7 @@ const AddPayment = () => {
                 SMS Error, SMS not sent!
             </div>
             <div className="px-5 md:px-20">
-                <h1 className="text-3xl md:text-4xl font-bold">Add Payment</h1>
+                <h1 className="text-3xl md:text-4xl font-bold">Create Client Loan</h1>
   
                 <div className=" min-h-[500px]  pt-4  ">
                     <div className="w-full flex flex-wrap flex-col gap-y-5 h-full md:mt-20 items-center justify-center"> 
@@ -173,7 +201,7 @@ const AddPayment = () => {
                                 </label>
                             }
                         </div>
-                        <button className="btn w-full bg-yellow-300 hover:bg-yellow-200 mt-4 max-w-xs" onClick={handleSubmit}>
+                        <button disabled={!amount || !client.first_name ? true : false}  className="btn w-full  bg-yellow-300 hover:bg-yellow-200 mt-4 max-w-xs" onClick={handleSubmit}>
                             {paying ? <> 
                                 <span className="loading loading-spinner"></span>   
                                 loading
@@ -203,10 +231,13 @@ const AddPayment = () => {
                         </>  :
                         filtered.length > 0 &&
                         filtered.map((client, index) => (
-                            <button key={index} onClick={() => {
-                                handleSelect(client)
-                                setAmount("")
-                            }} className={`w-full px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between`}>
+                            <button 
+                                key={index} 
+                                onClick={() => {
+                                    handleSelect(client)
+                                    setAmount("")
+                                }} 
+                                className={`w-full px-4  capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between`}>
                                 {`${client.first_name} ${client.middle_name && client.middle_name} ${client.last_name}`}
                             </button>
                         ))
@@ -217,4 +248,4 @@ const AddPayment = () => {
     )
 }
 
-export default AddPayment
+export default AddLoan

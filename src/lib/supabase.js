@@ -7,8 +7,8 @@ const url = import.meta.env.VITE_SUPABASE_URL
 
 const supabase = createClient(url, role_key, {
     auth: {
-        autoRefreshToken: false,
-        persistSession: false
+        autoRefreshToken: true,
+        persistSession: true
     }
 });
 

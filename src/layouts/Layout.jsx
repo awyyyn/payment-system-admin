@@ -1,33 +1,58 @@
-import { Link, Outlet } from "react-router-dom"
-import { Header } from "../components"
- 
-
+import { Link, Outlet, useNavigate } from "react-router-dom"  
 import logo from '../assets/logo.png'
+import supabase from "../lib/supabase"
+import { lazy, useEffect, useState } from "react"
+
+const SplashScreen = lazy(() => import('../components/SplashScreen'))
+const Header = lazy(() => import('../components/Header'))
 
 const Layout = () => {
+
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true)
+    
+    useEffect(() => {
+        const data = localStorage.getItem('sb-smoqrpjagpmjromdiwdw-auth-token')
+        if(data == null) return navigate('/sign-in')
+        setLoading(false);
+    }, [navigate])
 
     const links = [
         {
             name: 'Dashboard',
             path: '/'
         },
+        // {
+            //     name: 'Payment Ledger',
+        //     path: '/payment-ledger'
+        // },
+        // {
+        //     name: 'Message',
+        //     path: '/message'
+        // }, 
+        {
+            name: 'Create Payment',
+            path: '/create-payment'
+        }, 
+        {
+            name: 'Create Loan',
+            path: '/create-loan'
+        }, 
         {
             name: 'Client',
             path: '/client'
         },
-        {
-            name: 'Payment Ledger',
-            path: '/payment-ledger'
-        },
-        {
-            name: 'Message',
-            path: '/message'
-        }, 
-        {
-            name: 'Add Payment',
-            path: '/add-payment'
-        }, 
     ]
+
+
+    const handleSignOut = async() => {
+        console.log("CLICKED")
+        await supabase.auth.signOut()
+        navigate('/sign-in')
+    }
+
+
+    if(loading) return <SplashScreen />
 
     return (
         <>
@@ -58,7 +83,7 @@ const Layout = () => {
                                 </li>
                             </Link>
                         ))}
-                        <li className="text-xl ">
+                        <li className="text-xl "  onClick={handleSignOut}>
                             <label htmlFor="my-drawer-3">
                                 <button className="text-error font-semibold">Logout</button>
                             </label>
