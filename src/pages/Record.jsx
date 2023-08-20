@@ -138,10 +138,7 @@ export default function Record() {
                     <tr>  
                       <td className="text-center" colSpan={2}>No Active Loan</td> 
                     </tr> 
-                  : 
-                    loan.id && payments?.length == 0 ?
-                      <h1>Not found</h1>
-                    :   
+                  :  
                     payments?.map(payment => (
                       <tr key={payment?.id}> 
                         <td className="text-center">{loading ? '...' : payment?.date}</td>
