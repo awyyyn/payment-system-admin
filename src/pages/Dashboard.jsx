@@ -7,10 +7,10 @@ const Dashboard = () => {
     return (
         <>
             <div className="space-y-6 md:px-20 md:space-y-5 ">
-                <h1 className="text-center text-xl md:text-4xl font-bold leading-8 md:text-left">
-                    Welcome to Bicol Amigo&apos;s Lending Corporation Payment Management System with SMS Notification!
+                <h1 className="text-center text-xl md:text-4xl font-bold leading-8 ">
+                    Welcome to Bicol Amigo&apos;s Lending Corporation 
                 </h1> 
-                <p className="text-slate-700 text-center md:text-left leading-8 ">
+                <p className="text-slate-700 text-center  leading-8 ">
                     As we gear ourselves towards social responsibility and trustworthy, we aim for clientele satisfaction.  Bicol Amigo&apos;s Corporation Payment Management System with SMS Notification aims to gives every users - client and administrators a pleasant and satisfactory experience in using our system.
                 </p>
 

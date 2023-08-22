@@ -10,6 +10,7 @@ import AddPayment from "./pages/AddPayment"
 import { useEffect } from "react"
 import supabase from "./lib/supabase"
 import AddLoan from "./pages/AddLoan"
+import Tally from "./pages/Tally"
 
 function App() {
   
@@ -55,6 +56,10 @@ function App() {
         {
           path: '/client/:id',
           element: <Record />
+        },
+        {
+          path: '/tally',
+          element: <Tally />
         }
       ]
     },

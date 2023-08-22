@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import supabase from "../lib/supabase";
 
  
@@ -94,13 +94,13 @@ const AddLoan = () => {
             const { data: loanRes } = await supabase.from('loans_table').insert({client_id: client.uuid, amount_loan: amount}).select().single()
             
             await supabase.from('payments_table').insert([
-                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 16)},
-                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 36)},
-                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 41)},
-                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 61)},
-                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 76)},
-                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 91)},
-                {loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 106)},
+                {num: 1, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 16)},
+                {num: 2, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 31)},
+                {num: 3, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 46)},
+                {num: 4, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 61)},
+                {num: 5, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 76)},
+                {num: 6, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 91)},
+                {num: 7, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 106)},
             ]) 
             await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount, message, is_loan: true}); 
 

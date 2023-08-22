@@ -11,9 +11,10 @@ const AddPayment = () => {
     const [paying, setPaying] = useState(false);
     const [search, setSearch] = useState("");
     const [client, setClient] = useState({});
-    const [amount, setAmount] = useState("");
+    const [payment, setPayment] = useState({});
     const [notify, setNotify] = useState(false);
-    const [smsErr, setSmsErr] = useState(false)
+    const [smsErr, setSmsErr] = useState(false);
+    const [paymentsInfo, setPaymentsInfo] = useState([])
     const [err, setErr] = useState({
         nameErr: false,
         amountErr: false,
@@ -41,30 +42,26 @@ const AddPayment = () => {
     }, [search, clients]) 
 
         
-    const handleSelect = (client) => {
+    const handleSelect = async(client) => {
+        const { data} = await supabase.from('loans_table').select(`*`).match({client_id: client.uuid, is_paid: false}).single()
+        // console.log(data.id)
+        const { data: PaymentsData } = await supabase.from('payments_table').select('*').eq('loan', data?.id).order('num', {ascending: true})
         setClient(client); 
+        setPaymentsInfo(PaymentsData)
         setErr((p) => ({...p, nameErr: false, contactErr: false})) 
     } 
 
-    const amountValidation = (value) => {
-        if(/^\d+$/.test(value)){
-            setErr((p) => ({...p, amountErr: false}))
-        }else{
-            setErr((p) => ({...p, amountErr: true}))
-        } 
-    }
+     
 
     const handleSubmit = async () => { 
-        if(!client.first_name) setErr((p) => ({...p, nameErr: true, contactErr: true})) 
-        amountValidation(amount)
-        if(err.amountErr || err.nameErr) { 
+        if(!client.first_name) setErr((p) => ({...p, nameErr: true, contactErr: true}))  
+        if(err.amountErr || err.nameErr || !payment.id) { 
             return 
         } 
         setPaying(true); 
-        const message = `You pay ${amount} pesos. ${new Date().toLocaleString()}.`
-        try {
+        const message = `You pay the amount ${payment} pesos ${payment.date}.` 
             const phone = client.contact.slice(1) 
-            const res = await fetch('http://localhost:3000/send-sms', {
+            const res = await fetch('https://twilio-sms-ow78.onrender.com/send-sms', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -77,8 +74,8 @@ const AddPayment = () => {
 
             const data = await res.json(); 
 
-            await supabase.from('payments_table').insert({client_id: client.uuid, amount});
-            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount, message})
+            await supabase.from('payments_table').update({is_paid: true}).eq('id', payment.id)
+            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, payment, message})
 
             if(data.status === 400) {   
                 setSmsErr(true);  
@@ -87,16 +84,13 @@ const AddPayment = () => {
             }
             
             setNotify(true) 
-            setPaying(false);  
-            setAmount("")
+            setPaying(false);   
+            setPayment({})
+            setClient({})
             setTimeout(() => { 
                 setNotify(false)
             }, [3000]);
-
-        } catch (error) { 
-            console.log(error)
-            setPaying(false);  
-        }
+ 
 
     }
 
@@ -155,17 +149,21 @@ const AddPayment = () => {
                         
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
-                            <span className="label-text">Amount</span> 
+                            <span className="label-text">Select Payment</span> 
                             </label>
-                            <input 
-                                type="text"  
-                                placeholder="99.99" 
-                                className="input input-bordered w-full focus:input-warning max-w-xs capitalize" 
-                                value={amount} 
-                                disabled={paying ? true : false}
-                                onBlur={() => amountValidation(amount)}
-                                onChange={(e) => setAmount(e.target.value)} 
-                            /> 
+                            <h1
+                                type="text"   
+                                className={`${client.uuid ? 'text-black' : 'text-gray-400'} input input-bordered justify-between flex items-center cursor-pointer hover:focus-warning w-full max-w-xs capitalize`}  
+                                disabled={paying ? true : false} 
+                                onClick={()=> client.uuid && !paying && window.my_modal_4.showModal()} 
+                            >
+                                {payment?.id ? 
+                                    <>
+                                        <span>{payment.date}</span>
+                                        <span>₱ {payment.amount}</span>
+                                    </>
+                                      : ''}
+                            </h1>
                             {err.amountErr &&
                                 <label className="label">
                                     <span className="label-text-alt"></span>
@@ -205,9 +203,46 @@ const AddPayment = () => {
                         filtered.map((client, index) => (
                             <button key={index} onClick={() => {
                                 handleSelect(client)
-                                setAmount("")
+                                setPayment({})
                             }} className={`w-full px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between`}>
                                 {`${client.first_name} ${client.middle_name && client.middle_name} ${client.last_name}`}
+                            </button>
+                        ))
+                    }
+                </form>
+            </dialog>
+
+            
+            {/* MODAL */}
+            <dialog id="my_modal_4" className="modal max-w-[400px] mx-auto">
+                <form method="dialog" className="modal-box">
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    <h3 className="font-bold text-lg">Select Payment</h3> 
+                    <input 
+                        type="text" placeholder="Type here" 
+                        className="input input-bordered focus:input-warning w-full my-3 max-w-xs" 
+                        value={search} 
+                        onChange={(e) => setSearch(e.target.value)}  
+                    />
+                    {loading ?
+                        <>
+                            <h1 className="text-center  ">
+                                <span className="loading loading-dots loading-lg text-yellow-400 "></span>
+                            </h1>
+                        </>  :
+                        paymentsInfo.length > 0 &&
+                        paymentsInfo.map((item, index) => (
+                            <button 
+                                key={index} 
+                                disabled={item.is_paid}
+                                onClick={() => { 
+                                    setPayment(item)
+                                }} 
+                                className={`w-full px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between ${item.is_paid && 'bg-green-300 bg-opacity-50 hover:bg-green-300 hover:bg-opacity-50'}`}
+                            >
+                                <h1>{item.date}</h1>
+                                <h1>{item.amount}</h1>
+
                             </button>
                         ))
                     }

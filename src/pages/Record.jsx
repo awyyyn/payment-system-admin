@@ -9,7 +9,7 @@ export default function Record() {
   const { id } = useParams();
   const [client, setClient] = useState({});
   const [loading, setLoading] = useState(true); 
-  const [total, setTotal] = useState(0) 
+  const [total, setTotal] = useState(0)
   const [loan, setLoan] = useState({})
   const [payments, setPayments] = useState({})
    
@@ -17,14 +17,17 @@ export default function Record() {
   useEffect(() => {
     async function getClient() {
       try {
+        setLoading(true)
         const { data, error } = await supabase.from('clients_table').select(`*, payments_table(*), loans_table(*)`).eq('uuid', id).single()
-        
         if(error) throw error
-        // console.log(data)
+        console.log(data)
         setClient(data)
-        setLoan(data?.loans_table?.filter((d) => d.is_paid != true).pop())
+        let activeLoan = data?.loans_table?.filter((d) => d.is_paid != true).pop()
+        console.log(activeLoan)
+        setLoan(activeLoan)
         // console.log(loan)
-        setPayments(data?.payments_table?.filter(d => d.loan == loan?.id))
+        data?.payments_table?.map(i => i.is_paid === true && setTotal(p => p + i.amount))
+        setPayments(data?.payments_table?.filter(d => d.loan == activeLoan?.id).sort((a, b) => a.num - b.num))
         
         setLoading(false)
       } catch (error) {
@@ -110,7 +113,7 @@ export default function Record() {
           <label className="label">
             <span className="label-text">Principal </span> 
           </label>
-          <input type="text" value={loading ? '...' : `₱ ${client?.loans_table[0]?.amount_loan ? client?.loans_table[0]?.amount_loan - total : 0 }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ?  loan?.amount_loan - total : 0 }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
 
       </div> 
@@ -136,7 +139,7 @@ export default function Record() {
                   {/* row 1 */}
                   {client?.loans_table?.length == 0 ?
                     <tr>  
-                      <td className="text-center" colSpan={2}>No Active Loan</td> 
+                      <td className="text-center" colSpan={3}>No Active Loan</td> 
                     </tr> 
                   :  
                     payments?.map(payment => (
@@ -181,7 +184,7 @@ export default function Record() {
                   {/* row 1 */}
                   {client?.loans_table?.length == 0 ?
                     <tr>  
-                        <td className="text-center" colSpan={2}>No Active Loan</td> 
+                        <td className="text-center" colSpan={3}>No Active Loan</td> 
                       </tr> 
                   :  
                     client?.loans_table?.map(loan => (
