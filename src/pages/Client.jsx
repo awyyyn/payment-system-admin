@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import supabase from '../lib/supabase'
 import { useNavigate } from "react-router-dom";
+import { SplashScreen } from "../components";
 
  
 
@@ -41,7 +42,7 @@ const Client = () => {
     
 
     return ( 
-        <> 
+        <Suspense fallback={<SplashScreen />}> 
             <div className="flex justify-end md:pr-20 fixed right-0 pr-5 w-full">
                 <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" />
             </div>  
@@ -110,7 +111,7 @@ const Client = () => {
                     <p className="py-4">Press ESC key or click on ✕ button to close</p>
                 </form>
             </dialog> */}
-        </>
+        </Suspense>
     )
 }
 

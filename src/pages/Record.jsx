@@ -26,7 +26,10 @@ export default function Record() {
         console.log(activeLoan)
         setLoan(activeLoan)
         // console.log(loan)
-        data?.payments_table?.map(i => i.is_paid === true && setTotal(p => p + i.amount))
+        const paid_data =  data?.payments_table?.filter(i =>  i.is_paid === true )
+        
+        setTotal(Object.values(paid_data).map(i => i.amount).reduce((a, b) => a + b))
+
         setPayments(data?.payments_table?.filter(d => d.loan == activeLoan?.id).sort((a, b) => a.num - b.num))
         
         setLoading(false)
@@ -39,8 +42,7 @@ export default function Record() {
     getClient(); 
 
   }, [])
-  
-  console.log(payments)
+   
  
   return (
     <div className="md:px-20">
@@ -113,7 +115,7 @@ export default function Record() {
           <label className="label">
             <span className="label-text">Principal </span> 
           </label>
-          <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ?  loan?.amount_loan - total : 0 }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ?  loan?.amount_loan - total: 0 }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
 
       </div> 

@@ -1,6 +1,5 @@
 import { Suspense, useEffect, useState } from "react"
-import supabase from '../lib/supabase'
-import { useNavigate } from "react-router-dom";
+import supabase from '../lib/supabase' 
 import { SplashScreen } from "../components";
 
  
@@ -52,8 +51,12 @@ const Tally = () => {
         <Suspense fallback={<SplashScreen />}> 
             {/* <div className="flex justify-end md:px-20">
                 <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" />
-            </div>   */}
-            <div className="overflow-x-auto  md:px-20 mt-10 p-5 pb-10  "> 
+            </div>   */} 
+            <h1 className="text-left text-xl md:text-4xl font-bold leading-8 md:px-20  px-5 ">
+                Tally 
+            </h1> 
+            <div className="overflow-x-auto  md:px-20 mt-10 p-5 pb-10  ">  
+                 
                 <table className="table shadow-xl overflow-hidden">
                     {/* head */}
                     <thead className="bg-[#21461A] text-white">
@@ -89,13 +92,20 @@ const Tally = () => {
                                 })
                             :
                             <tr className="hover:bg-[#21461A20] cursor-pointer"> 
-                                <td colSpan={4} className="text-center">Not Found</td>
+                                <td colSpan={3} className="text-center text-lg">No collection this day</td>
                             </tr>
 
                         }
                         <tr  className="hover:bg-[#21461A20] cursor-pointer" >
-                            <td className="min-w-[200px]" colSpan={2}>Total</td> 
-                            <td className="min-w-[180px]" >₱  {total ? total : 0}</td>
+
+                            {total ? 
+                                <>
+                                    <td className="min-w-[200px]" colSpan={2}>Total</td> 
+                                    <td className="min-w-[180px]" >₱  {total ? total : 0}</td>
+                                </>
+                            :  
+                            null
+                            }
                             {/* <td >{new Date(client.created_at).toLocaleDateString()}</td>   */}
                         </tr> 
                     </tbody>

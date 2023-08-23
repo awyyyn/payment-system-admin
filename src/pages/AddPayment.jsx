@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import supabase from "../lib/supabase";
+import { SplashScreen } from "../components";
 
  
 
@@ -97,7 +98,7 @@ const AddPayment = () => {
 
 
     return ( 
-        <>
+        <Suspense fallback={<SplashScreen />}>
             <div className={`fixed bg-green-500 right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white ${notify ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
                 SMS Sent! 
             </div>
@@ -248,7 +249,7 @@ const AddPayment = () => {
                     }
                 </form>
             </dialog>
-        </>
+        </Suspense>
     )
 }
 

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import supabase from '../lib/supabase'
 import { useNavigate } from "react-router-dom";
+import { SplashScreen } from "../components";
 
  
 
@@ -42,7 +43,7 @@ const Records = () => {
     
 
     return ( 
-        <> 
+        <Suspense fallback={<SplashScreen />}> 
             <div className="flex justify-end md:px-20">
                 <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" />
             </div>  
@@ -88,7 +89,7 @@ const Records = () => {
                 </table>
             </div>
  
-        </>
+        </Suspense>
     )
 }
 

@@ -4,6 +4,7 @@ import together from '../assets/together-we.jpg'
 import core from '../assets/core-values.jpg'
 
 const Dashboard = () => {
+
     return (
         <>
             <div className="space-y-6 md:px-20 md:space-y-5 ">

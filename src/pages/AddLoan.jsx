@@ -1,13 +1,18 @@
-import { useEffect, useState } from "react";
-import supabase from "../lib/supabase";
+import { Suspense, useContext, useEffect, useState } from "react";
+import supabase from "../lib/supabase";  
+import { SplashScreen } from "../components";
+import { CorpContext } from "../context/context";
+import { useNavigate } from "react-router-dom";
 
  
 
 const AddLoan = () => {
-
+    
+    const navigate = useNavigate(   )
+    const { userData } = useContext(CorpContext)
     const [clients, setClients] = useState([]);
     const [filtered, setFiltered] = useState(clients);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); 
     const [paying, setPaying] = useState(false);
     const [search, setSearch] = useState("");
     const [client, setClient] = useState({});
@@ -19,9 +24,12 @@ const AddLoan = () => {
         nameErr: false,
         amountErr: false,
         contactErr: false,
-    })
+    }) 
 
-    useEffect(() => { 
+    useEffect(() => {  
+
+        if(userData.role == "collector") return navigate('/')
+
         async function getClients() { 
             try {
                 const { data, error } = await supabase.from('clients_table').select(`*, loans_table(*)`)  
@@ -101,10 +109,18 @@ const AddLoan = () => {
                 {num: 5, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 76)},
                 {num: 6, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 91)},
                 {num: 7, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 106)},
-            ]) 
-            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount, message, is_loan: true}); 
+            ]);
+
+            await supabase.from('sms_notifications_table')
+                .insert({
+                    client_id: client.uuid, 
+                    amount, 
+                    message, 
+                    is_loan: true
+                }); 
 
             setClient({})
+            setAmount("")
             /* SMS ERROR */
             if(data.status === 400) {  
 
@@ -118,7 +134,6 @@ const AddLoan = () => {
             setNotify(true) 
             setPaying(false);  
 
-            setAmount("")
             setTimeout(() => { 
                 setNotify(false)
             }, [3000]);
@@ -129,9 +144,11 @@ const AddLoan = () => {
         }
 
     }
+
+     
  
     return ( 
-        <>
+        <Suspense fallback={<SplashScreen />}>
             <div className={`fixed bg-green-500 right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white ${notify ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
                 SMS Sent! 
             </div>
@@ -244,7 +261,7 @@ const AddLoan = () => {
                     }
                 </form>
             </dialog>
-        </>
+        </Suspense>
     )
 }
 
