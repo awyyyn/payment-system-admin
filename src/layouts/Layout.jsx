@@ -11,7 +11,7 @@ import { TbTallymarks } from 'react-icons/tb'
 import { IoIosNotifications } from 'react-icons/io'
 // import { CorpContext } from "../context/context";
 import CryptoJS from "crypto-js"
-import { CorpContext } from "../context/context"
+import { CorpContext } from "../context/AppContext"
 
 
 const SplashScreen = lazy(() => import('../components/SplashScreen'))
@@ -26,17 +26,25 @@ const Layout = () => {
     const navigate = useNavigate();  
     
     useEffect(() => {
+        
         const data = localStorage.getItem('sb-smoqrpjagpmjromdiwdw-auth-token')
-        if(data == null) return navigate('/sign-in')  
+        if(data == null) { 
+            return navigate('/sign-in');
+        }
+
         const storedData = localStorage.getItem('encryptedData');  
         const bytes = CryptoJS.AES.decrypt(storedData, 'secretKey');
         const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8)); 
+        if(!decryptedData ){ 
+            return navigate('/sign-in');
+        }
         setUserData({
             name: decryptedData.name,
             email: decryptedData.email,
             role: decryptedData.role,
-        })
-        console.log(userData)
+        }) 
+
+
         // setUserData({})
             
     }, [path])
@@ -107,6 +115,7 @@ const Layout = () => {
 
     const handleSignOut = async() => { 
         await supabase.auth.signOut()
+        localStorage.removeItem('encryptedData')
         navigate('/sign-in')
     }
 

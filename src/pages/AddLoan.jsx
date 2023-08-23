@@ -1,7 +1,7 @@
 import { Suspense, useContext, useEffect, useState } from "react";
 import supabase from "../lib/supabase";  
 import { SplashScreen } from "../components";
-import { CorpContext } from "../context/context";
+import { CorpContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 
  
@@ -150,10 +150,10 @@ const AddLoan = () => {
     return ( 
         <Suspense fallback={<SplashScreen />}>
             <div className={`fixed bg-green-500 right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white ${notify ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
-                SMS Sent! 
+                Notification Sent! 
             </div>
             <div className={`fixed  bg-red-600  right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white ${smsErr ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
-                SMS Error, SMS not sent!
+                Notification not sent!
             </div>
             <div className="px-5 md:px-20">
                 <h1 className="text-3xl md:text-4xl font-bold">Create Client Loan</h1>

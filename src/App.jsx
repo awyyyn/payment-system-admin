@@ -12,7 +12,8 @@ import supabase from "./lib/supabase"
 import AddLoan from "./pages/AddLoan"
 import Tally from "./pages/Tally"
 import Notify from "./pages/Notify" 
-import { CorpContext } from "./context/context"
+import { CorpContext } from "./context/AppContext"
+import Notfound from "./pages/Notfound"
 
 function App() {
   
@@ -73,12 +74,16 @@ function App() {
     {
       path: '/sign-in',
       element: <Signin />
+    },
+    {
+      path: '*',
+      element: <Notfound />
     }
   ]);
 
   const collectorRouter = createBrowserRouter([
     {
-      element: <Layout />,
+      element: <Layout />, 
       children: [
         {
           path: '/',
@@ -122,6 +127,10 @@ function App() {
     {
       path: '/sign-in',
       element: <Signin />
+    },
+    {
+      path: '*',
+      element: <Notfound />
     }
   ]);
  

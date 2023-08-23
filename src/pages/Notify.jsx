@@ -10,14 +10,14 @@ const Notify = () => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [filtered, setFiltered] = useState(clients);
-    const [sending, setSending] = useState(false) 
+    const [sending, setSending] = useState(0) 
     const [smsErr, setSmsErr] = useState(false);
     const [notify, setNotify] = useState(false);
 
     useEffect(() => {
         async function getClients() {
             try {
-                const { data, error } = await supabase.from('clients_table').select(`*, loans_table(*)`)   
+                const { data, error } = await supabase.from('clients_table').select(`*, loans_table(*), payments_table(*)`);   
                 if(error) throw error
                 setClients(data?.filter(l => l?.loans_table?.length && l?.loans_table?.some(item =>  item.is_paid == false )) )  
                 setFiltered(data?.filter(l => l?.loans_table?.length && l?.loans_table?.some(item =>  item.is_paid == false )) )  
@@ -89,13 +89,14 @@ const Notify = () => {
                                         <td>{`${client.first_name} ${client.last_name}`}</td>
                                         <td className="min-w-[180px]">{client.contact}</td> 
                                         <td >{client.address}</td>  
-                                        <td className="max-w-min hover:bg-warning group"
+                                        <td className={`max-w-min  group ${sending === client.uuid ? 'hover:bg-slate-100' : 'hover:bg-warning'}`}
                                             onClick={async() => { 
                                                 if(!sending){
 
-                                                    setSending(true);
+                                                    setSending(client.uuid);
                                                     const amount = client.loans_table.filter(i => i.is_paid == false).pop()
-                                                    const message = `Reminder! You must pay ${String(amount.amount_loan / 7).split('.')[0]} pesos before or on Due Date.`
+                                                    const date = client.payments_table.filter(i => i.is_paid == false).shift()  
+                                                    const message = `Reminder! You must pay ${String(amount.amount_loan / 7).split('.')[0]} pesos before or ${date.date}.`
                                                     console.log(message)
                                                     try {
                                                         const phone = client.contact.slice(1) 
@@ -119,21 +120,20 @@ const Notify = () => {
                                                             message, 
                                                             is_loan: false
                                                         }); 
-    
-                                                        setSending(false);   
+     
                                                         if(data.status === 400) {   
                                                             setSmsErr(true);  
-                                                            setSending(false);    
+                                                            setSending(0);    
                                                             return  setTimeout(() => setSmsErr(false), 3000)
                                                         }else{ 
                                                             setNotify(true) 
-                                                            setSending(false);  
+                                                            setSending(0);  
                                                 
                                                             setTimeout(() => { 
                                                                 setNotify(false)
                                                             }, [3000]);
                                                         }
-    
+                                                        
     
                                                     }catch(err) {
                                                         console.log(err)
@@ -141,11 +141,17 @@ const Notify = () => {
                                                 }
                                             }}
                                         >
-                                            <p className={`transition-all flex gap-x-5 items-center ${sending ? '' : 'group-active:scale-95'}`}>
+                                            <p className={`transition-all flex gap-x-5 items-center ${sending === client.uuid ? 'text-warning' : 'group-active:scale-95'}`}>
                                                 <span className={` scale-110 ${!sending && 'group-hover:animate-ping'} `}>
                                                     <IoIosNotifications />
                                                 </span>
-                                                Send Notification
+                                                {sending == client.uuid ?
+                                                    <>
+                                                    <span className="loading loading-dots loading-sm"></span>
+                                                    </>
+                                                    : 'Send Notification'
+                                                }
+                                                
                                             </p> 
                                         </td>
                                     </tr> 

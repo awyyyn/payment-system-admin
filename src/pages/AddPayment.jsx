@@ -1,11 +1,13 @@
 import { Suspense, useEffect, useState } from "react";
 import supabase from "../lib/supabase";
 import { SplashScreen } from "../components";
+import { useNavigate } from "react-router-dom";
 
  
 
 const AddPayment = () => {
 
+    const navigate = useNavigate()
     const [clients, setClients] = useState([]);
     const [filtered, setFiltered] = useState(clients);
     const [loading, setLoading] = useState(true);
@@ -23,6 +25,7 @@ const AddPayment = () => {
     })
 
     useEffect(() => { 
+        
         async function getClients() {
             try {
                 const { data, error } = await supabase.from('clients_table').select(`*, payments_table(*), loans_table(*)`).eq('loans_table.is_paid', false)
@@ -40,7 +43,7 @@ const AddPayment = () => {
     useEffect(() => {
         setFiltered(clients?.filter(client => client.first_name.toLowerCase().includes(search.toLowerCase()) || client.last_name.toLowerCase().includes(search.toLowerCase()) ))
         // clients?.filter(client => String(client.first_name).toLowerCase().includes(String(search).toLowerCase()) || String(client.last_name).toLowerCase().includes(String(search).toLower()))
-    }, [search, clients]) 
+    }, [search, clients, paying]) 
 
         
     const handleSelect = async(client) => {
@@ -60,30 +63,45 @@ const AddPayment = () => {
             return 
         } 
         setPaying(true); 
-        const message = `You pay the amount ${payment} pesos ${payment.date}.` 
-            const phone = client.contact.slice(1) 
-            const res = await fetch('https://twilio-sms-ow78.onrender.com/send-sms', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    number: `63${phone}`, 
-                    message
-                })
-            });
+        let message
+        if(payment.num == 7){
+            message = `Congratulations! Your loan has been fully paid. Thank you for choosing Bicol's Amigo.`
+        }else{
+            message = `You pay ${payment.amount} pesos  amount ${payment.date}.`;
+        }
+        console.log(payment.num)
+        console.log(message)
 
+        // // setPaying(false)
+        const phone = client.contact.slice(1) 
+        const res = await fetch('https://twilio-sms-ow78.onrender.com/send-sms', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                number: `63${phone}`, 
+                message
+            })
+        });
+
+        
+        if(payment.num == 7){ 
+            console.log(payment.loan)
+            console.log(client)
+            await supabase.from('loans_table').update({is_paid: true}).eq('id', payment.loan)
+            await supabase.from('payments_table').update({is_paid: true}).eq('id', payment.id);
             const data = await res.json(); 
-
-            await supabase.from('payments_table').update({is_paid: true}).eq('id', payment.id)
-            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, payment, message})
+ 
 
             if(data.status === 400) {   
                 setSmsErr(true);  
                 setPaying(false);   
+                setPayment({})
+                setClient({})
                 return  setTimeout(() => setSmsErr(false), 3000)
             }
-            
+            navigate(`/client/${client.uuid}`)
             setNotify(true) 
             setPaying(false);   
             setPayment({})
@@ -91,6 +109,31 @@ const AddPayment = () => {
             setTimeout(() => { 
                 setNotify(false)
             }, [3000]);
+
+            return 
+        }else{
+            await supabase.from('payments_table').update({is_paid: true}).eq('id', payment.id)
+            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, payment, message})
+        }
+
+        const data = await res.json(); 
+ 
+
+        if(data.status === 400) {   
+            setSmsErr(true);  
+            setPaying(false);   
+            setPayment({})
+            setClient({})
+            return  setTimeout(() => setSmsErr(false), 3000)
+        }
+        
+        setNotify(true) 
+        setPaying(false);   
+        setPayment({})
+        setClient({})
+        setTimeout(() => { 
+            setNotify(false)
+        }, [3000]);
  
 
     }
@@ -100,10 +143,10 @@ const AddPayment = () => {
     return ( 
         <Suspense fallback={<SplashScreen />}>
             <div className={`fixed bg-green-500 right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white ${notify ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
-                SMS Sent! 
+                Notification Sent! 
             </div>
             <div className={`fixed  bg-red-600  right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white ${smsErr ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
-                SMS Error, SMS not sent!
+                Notification not sent!
             </div>
             <div className="px-5 md:px-20">
                 <h1 className="text-3xl md:text-4xl font-bold">Add Payment</h1>

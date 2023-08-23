@@ -2,11 +2,13 @@
 // import Twilio from "twilio"
 import together from '../assets/together-we.jpg'
 import core from '../assets/core-values.jpg'
+import { Suspense } from 'react'
+import { SplashScreen } from '../components'
 
 const Dashboard = () => {
 
     return (
-        <>
+        <Suspense fallback={<SplashScreen />}>
             <div className="space-y-6 md:px-20 md:space-y-5 ">
                 <h1 className="text-center text-xl md:text-4xl font-bold leading-8 ">
                     Welcome to Bicol Amigo&apos;s Lending Corporation 
@@ -20,7 +22,7 @@ const Dashboard = () => {
                     <img src={core} loading="eager" className='max-w-[300px] min-w-[250px] md:max-w-[400px] shadow-2xl' />
                 </div>
             </div>
-        </>
+        </Suspense>
     )
 }
 

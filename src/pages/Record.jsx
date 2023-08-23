@@ -11,7 +11,7 @@ export default function Record() {
   const [loading, setLoading] = useState(true); 
   const [total, setTotal] = useState(0)
   const [loan, setLoan] = useState({})
-  const [payments, setPayments] = useState({})
+  const [payments, setPayments] = useState([])
    
 
   useEffect(() => {
@@ -23,15 +23,25 @@ export default function Record() {
         console.log(data)
         setClient(data)
         let activeLoan = data?.loans_table?.filter((d) => d.is_paid != true).pop()
-        console.log(activeLoan)
+         
         setLoan(activeLoan)
         // console.log(loan)
-        const paid_data =  data?.payments_table?.filter(i =>  i.is_paid === true )
-        
-        setTotal(Object.values(paid_data).map(i => i.amount).reduce((a, b) => a + b))
-
-        setPayments(data?.payments_table?.filter(d => d.loan == activeLoan?.id).sort((a, b) => a.num - b.num))
-        
+        const paid_data =  data?.payments_table?.filter(i =>  i.is_paid == true && i.loan == activeLoan.id )
+        // const total
+        // setTotal(Object.values(paid_data).map(i => i.amount)?.reduce((a, b) => a + b))
+        const total = Object.values(paid_data).map(i => i.amount)
+        console.log("total", total) 
+        setPayments(data?.payments_table.filter(i => i.loan === activeLoan.id).sort((a, b) => a.num - b.num))
+        console.log()
+        if(total.length > 0){
+          setTotal(Object.values(paid_data).map(i => i.amount).reduce((a, b) => a + b))
+        }else{
+          setTotal(0)
+        }
+        console.log("PAID", total)
+        // console.log("TOAL", total.length > 0 ? total.reduce((a, b) => a + b) : null)
+ 
+        // console.log(data?.payments_table?.filter(d => d.loan == activeLoan?.id).sort((a, b) => a.num - b.num))
         setLoading(false)
       } catch (error) {
         console.log(error)
@@ -115,7 +125,7 @@ export default function Record() {
           <label className="label">
             <span className="label-text">Principal </span> 
           </label>
-          <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ?  loan?.amount_loan - total: 0 }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ?  loan.amount_loan - total : 0 }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
         </div>
 
       </div> 
@@ -143,7 +153,13 @@ export default function Record() {
                     <tr>  
                       <td className="text-center" colSpan={3}>No Active Loan</td> 
                     </tr> 
-                  :  
+                  :  payments.length == 0 ? 
+                      <>
+                        <tr>
+                          <td colSpan={3} className="text-center">No active loan</td>
+                        </tr>
+                      </>
+                  :
                     payments?.map(payment => (
                       <tr key={payment?.id}> 
                         <td className="text-center">{loading ? '...' : payment?.date}</td>
@@ -186,7 +202,7 @@ export default function Record() {
                   {/* row 1 */}
                   {client?.loans_table?.length == 0 ?
                     <tr>  
-                        <td className="text-center" colSpan={3}>No Active Loan</td> 
+                        <td className="text-center" colSpan={3}>No Loan History</td> 
                       </tr> 
                   :  
                     client?.loans_table?.map(loan => (
