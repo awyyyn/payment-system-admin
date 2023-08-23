@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import logo from '../assets/logo.png'
 import supabase from '../lib/supabase'; 
 import { useNavigate } from 'react-router-dom';
@@ -9,13 +9,11 @@ import CryptoJS from 'crypto-js';
 
 const Signin = () => {
  
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(true) 
-    const [errorLogin, setErrorLogin] = useState('') 
+    const navigate = useNavigate(); 
+    const [errorLogin, setErrorLogin] = useState('');
     useEffect(() => {
         const data = localStorage.getItem('sb-smoqrpjagpmjromdiwdw-auth-token')
-        if(data != null) return navigate('/')
-        setLoading(false);
+        if(data != null) return navigate('/') 
     }, [navigate])
     
     const [verifying, setVerifying] = useState(false);
@@ -85,11 +83,10 @@ const Signin = () => {
 
          
     }
-
-    if(loading) return <SplashScreen />
+ 
 
     return (
-        <> 
+        <Suspense fallback={<SplashScreen />}> 
             <div className={`fixed  bg-red-600  right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white ${errorLogin ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
                 Incorrect Email or Password
             </div>  
@@ -127,7 +124,7 @@ const Signin = () => {
                 </div>
                 {/* <img src={logo2} className='block md:hidden opacity-20 absolute bottom-0 left-0 w-[50%] -z-10' /> */}
             </main>
-        </>
+        </Suspense>
     )
 }
 

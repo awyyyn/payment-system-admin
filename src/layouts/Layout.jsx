@@ -12,9 +12,9 @@ import { IoIosNotifications } from 'react-icons/io'
 // import { CorpContext } from "../context/context";
 import CryptoJS from "crypto-js"
 import { CorpContext } from "../context/AppContext"
+import { SplashScreen } from "../components"
 
-
-const SplashScreen = lazy(() => import('../components/SplashScreen'))
+ 
 const Header = lazy(() => import('../components/Header'))
 
 const Layout = () => {
@@ -69,7 +69,7 @@ const Layout = () => {
         }, 
         {
             name: 'Clients',
-            path: '/client',
+            path: '/clients',
             icon: <PiUsersThreeFill />
         },
         {
@@ -98,7 +98,7 @@ const Layout = () => {
         }, 
         {
             name: 'Clients',
-            path: '/client',
+            path: '/clients',
             icon: <PiUsersThreeFill />
         },
         {
@@ -127,8 +127,8 @@ const Layout = () => {
                 <main className="drawer md:drawer-open transition-all ">
                     <input id="my-drawer-3" type="checkbox" className="drawer-toggle" /> 
                     <div className="drawer-content flex flex-col">
-                        {/* Navbar */}
-                        <Header />
+                        {/* Navbar */} 
+                        <Header /> 
                         {/* Page content here */}
                         <div className="px-5 py-10 mt-12 md:mt-0 w-screen md:w-auto ">
                             <Outlet />

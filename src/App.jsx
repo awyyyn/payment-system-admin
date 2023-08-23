@@ -3,8 +3,8 @@ import Layout from "./layouts/Layout"
 import Dashboard from './pages/Dashboard'
 import Signin from './pages/Signin' 
 import Client from "./pages/Client"
-// import PaymentLedger from "./pages/PaymentLedger"
-import Message from "./pages/Message" 
+// // import PaymentLedger from "./pages/PaymentLedger"
+// import Message from "./pages/Message" 
 import Record from "./pages/Record"
 import AddPayment from "./pages/AddPayment"
 import { useContext, useEffect } from "react"
@@ -38,7 +38,7 @@ function App() {
           element: <Dashboard />
         },
         {
-          path: '/client', 
+          path: '/clients', 
           element: <Client />
         },
         // {
@@ -48,11 +48,7 @@ function App() {
         {
           path: '/create-loan',
           element: <AddLoan />
-        },
-        {
-          path: '/message',
-          element: <Message />
-        },
+        }, 
         {
           path: '/create-payment',
           element: <AddPayment />
@@ -91,29 +87,17 @@ function App() {
           element: <Dashboard />
         },
         {
-          path: '/client', 
+          path: '/clients', 
           element: <Client />
-        },
-        // {
-        //   path: '/payment-ledger',
-        //   element: <PaymentLedger />
-        // },
+        },  
         {
-          path: '/create-loan',
-          element: <AddLoan />
-        },
-        {
-          path: '/message',
-          element: <Message />
-        },
+          path: '/client/:id', 
+          element: <Record />
+        },  
         {
           path: '/create-payment',
           element: <AddPayment />
-        },
-        {
-          path: '/client/:id',
-          element: <Record />
-        },
+        }, 
         {
           path: '/tally',
           element: <Tally />
