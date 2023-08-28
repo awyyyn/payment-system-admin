@@ -13,7 +13,7 @@ import AddLoan from "./pages/AddLoan"
 import Tally from "./pages/Tally"
 import Notify from "./pages/Notify" 
 import { CorpContext } from "./context/AppContext"
-import Notfound from "./pages/Notfound"
+import Notfound from "./pages/Notfound" 
 
 function App() {
   
@@ -40,7 +40,7 @@ function App() {
         {
           path: '/clients', 
           element: <Client />
-        },
+        }, 
         // {
         //   path: '/payment-ledger',
         //   element: <PaymentLedger />

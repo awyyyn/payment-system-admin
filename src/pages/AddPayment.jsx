@@ -261,13 +261,13 @@ const AddPayment = () => {
             <dialog id="my_modal_4" className="modal max-w-[400px] mx-auto">
                 <form method="dialog" className="modal-box">
                     <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                    <h3 className="font-bold text-lg">Select Payment</h3> 
-                    <input 
+                    <h3 className="font-bold text-lg mb-5">Select Payment</h3> 
+                   {/*  <input 
                         type="text" placeholder="Type here" 
                         className="input input-bordered focus:input-warning w-full my-3 max-w-xs" 
                         value={search} 
                         onChange={(e) => setSearch(e.target.value)}  
-                    />
+                    /> */}
                     {loading ?
                         <>
                             <h1 className="text-center  ">
@@ -282,7 +282,7 @@ const AddPayment = () => {
                                 onClick={() => { 
                                     setPayment(item)
                                 }} 
-                                className={`w-full px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between ${item.is_paid && 'bg-green-300 bg-opacity-50 hover:bg-green-300 hover:bg-opacity-50'}`}
+                                className={`w-full my-2 px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between ${item.is_paid && 'hidden bg-green-300 bg-opacity-50 hover:bg-green-300 hover:bg-opacity-50'}`}
                             >
                                 <h1>{item.date}</h1>
                                 <h1>{item.amount}</h1>
