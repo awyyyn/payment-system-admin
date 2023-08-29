@@ -73,12 +73,12 @@ const Layout = () => {
             icon: <PiUsersThreeFill />
         },
         {
-            name: 'Notify',
+            name: 'Notifications',
             path: '/notify-clients',
             icon: <IoIosNotifications />
         },
         {
-            name: 'Tally',
+            name: 'Reports',
             path: '/tally',
             icon: <TbTallymarks />
         },
@@ -97,17 +97,17 @@ const Layout = () => {
             
         }, 
         {
-            name: 'Clients',
+            name: 'Client Management',
             path: '/clients',
             icon: <PiUsersThreeFill />
         },
         {
-            name: 'Notify',
+            name: 'Notifications',
             path: '/notify-clients',
             icon: <IoIosNotifications />
         },
         {
-            name: 'Tally',
+            name: 'Reports',
             path: '/tally',
             icon: <TbTallymarks />
         },

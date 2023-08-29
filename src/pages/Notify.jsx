@@ -58,8 +58,11 @@ const Notify = () => {
             <div className={`fixed  bg-red-600  right-8 md:right-10 top-20 px-5 py-1 rounded-md shadow-xl text-white z-[9999] ${smsErr ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
                 Notification error!
             </div>
+            <h1 className="text-left text-xl md:text-4xl font-bold leading-8 md:px-20  px-5 ">
+                Notifications
+            </h1> 
             <div className="flex justify-end md:pr-20 fixed right-0 pr-5 w-full">
-                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" />
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="border-[1px] outline-none border-stone-300 input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" />
             </div>  
             <div className="overflow-x-auto  md:px-20 mt-10 p-5 pt-8 pb-10  "> 
                 <table className="table shadow-xl overflow-hidden">

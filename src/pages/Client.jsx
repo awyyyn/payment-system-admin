@@ -1,21 +1,14 @@
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
+import { Suspense, useCallback, useContext, useEffect, useState } from "react"
 import supabase from '../lib/supabase'
 import { useNavigate } from "react-router-dom";
 import { SplashScreen } from "../components";
-import { BiSolidUserPlus } from 'react-icons/bi'
-import { parse } from "postcss";
+import { BiSolidUserPlus } from 'react-icons/bi' 
+import { CorpContext } from "../context/AppContext";
  
-
-const initialValues = {
-    fname: '',
-    lname: '',
-    mname: '',
-    address: '',
-    contact: '',
-    loanAmount: '', 
-}
+ 
 const Client = () => {
     
+    const { userData } = useContext(CorpContext)
     const [clients, setClients] =  useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -168,6 +161,7 @@ const Client = () => {
                 tab: 1
             }))
         } 
+        
     }, [formData])
  
 
@@ -187,27 +181,32 @@ const Client = () => {
                 })
             });
 
-            const data = await res.json(); 
+            const data = await res.json();
+            console.log(data) 
 
             /* INSERT DATA TO LOANS_TABLE */
-            const { data: loanRes } = await supabase.from('loans_table').insert({client_id: id, amount_loan: totalLoan}).select().single()
+            const { data: loanRes } = await supabase.from('loans_table').insert({client_id: id, amount_loan: formData.loanAmount, total_amount: totalLoan}).select().single()
             const fixedAmount = Number(totalLoan) / 7;
-            await supabase.from('payments_table').insert([
-                {num: 1, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 16)},
-                {num: 2, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 31)},
-                {num: 3, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 46)},
-                {num: 4, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 61)},
-                {num: 5, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 76)},
-                {num: 6, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 91)},
-                {num: 7, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 106)},
-            ]);
 
+            await supabase.from('payments_table')
+                .insert({num: 1, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 16)});
+            await supabase.from('payments_table')
+                .insert({num: 2, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 31)})
+            await supabase.from('payments_table')
+                .insert({num: 3, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 46)})
+            await supabase.from('payments_table')
+                .insert({num: 4, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 61)})
+            await supabase.from('payments_table')
+                .insert({num: 5, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 76)})
+            await supabase.from('payments_table')
+                .insert({num: 6, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 91)})
+            await supabase.from('payments_table')
+                .insert({num: 7, loan: loanRes.id, amount:  fixedAmount, client_id: id, is_paid: false, date: addDays(Date.now(), 106)})
 
-            console.log(loanRes)
+ 
             
             /* SMS ERROR */
-            if(data.status === 400) {  
- 
+            if(data.status === 400) {   
                 setCreating(false)
                 setSmsErr(true);   
                 return  setTimeout(() => setSmsErr(false), 3000)
@@ -258,14 +257,14 @@ const Client = () => {
             </div> */}
 
             <h1 className="text-3xl md:text-4xl px-5 md:px-20 font-bold">Client Management</h1>
-            <div className="flex flex-col sm:flex-row gap-y-4 justify-between px-5 mt-5 md:px-20"> 
+            <div className={`flex flex-col sm:flex-row gap-y-4 ${userData.role == "collector" ? "justify-end" : "justify-between"} px-5 mt-5 md:px-20 `}> 
                 {/* <button className="btn btn-active bg-[#21461A] text-white hover:bg-green-800 " onClick={()=>window.my_modal_1.showModal()}>
                     
                 </button> */}
-                <label htmlFor="my_modal_1" className="btn btn-active bg-[#21461A] text-white hover:bg-green-800 " >
+               {userData.role !== "collector" && <label htmlFor="my_modal_1" className="btn btn-active bg-[#21461A] text-white hover:bg-green-800 " >
                     <BiSolidUserPlus />
                     Add Client
-                </label>
+                </label>}
                 <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md border border-stone-300 focus:input-warning focus:shadow-none w-full max-w-xs" />
             </div>
             {/* <div className="flex justify-between md:pr-20 fixed right-0 pr-5 w-full"> 
@@ -317,7 +316,7 @@ const Client = () => {
             <input type="checkbox" id="my_modal_1" className="modal-toggle" /> 
             <div  className="modal">
                 <div className="modal-box max-w-min overflow-hidden">  
-                    <label htmlFor="my_modal_1" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
+                    <label htmlFor="my_modal_1" onClick={() => setStates(p => ({...p, tab: 0}))} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
                     <div className="flex gap-x-2"> 
                         <h3 className="font-bold text-xl mb-1">{state.tab == 0 ? "Personal Information" : "Loan Information"}</h3>
                         <div className={`alert alert-error absolute max-w-[350px] ${state.isError ? '-right-20' : '-right-full'} transition-all duration-1000 top-3`}>
@@ -427,8 +426,8 @@ const Client = () => {
                                     name="loanAmount"
                                     onChange={(e) => {
                                         handleChange(e)
-                                        setInterest(e.target.value * 0.19)
-                                        setTotalLoan(Number(e.target.value) + (Number(e.target.value) * 0.19))
+                                        setInterest(Math.floor(Number(e.target.value) * 0.19))
+                                        setTotalLoan(Math.floor(Number(e.target.value) + (Number(e.target.value) * 0.19)))  
                                     }}
                                     type="text" placeholder="Amount" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
                                 <label className="label">

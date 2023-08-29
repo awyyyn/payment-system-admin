@@ -53,7 +53,7 @@ const Tally = () => {
                 <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" />
             </div>   */} 
             <h1 className="text-left text-xl md:text-4xl font-bold leading-8 md:px-20  px-5 ">
-                Tally 
+                Reports 
             </h1> 
             <div className="overflow-x-auto  md:px-20 mt-10 p-5 pb-10  ">  
                  
