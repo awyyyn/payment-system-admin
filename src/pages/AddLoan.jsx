@@ -125,7 +125,8 @@ const AddLoan = () => {
                     message, 
                     is_loan: true
                 }); 
-
+            
+            setDone(!done)
             setClient({})
             setAmount("")
             /* SMS ERROR */
@@ -134,7 +135,8 @@ const AddLoan = () => {
                 setSmsErr(true); 
     
                 setPaying(false);  
-                
+                    
+                setDone(!done)
                 return  setTimeout(() => setSmsErr(false), 3000)
             }
             
@@ -253,8 +255,8 @@ const AddLoan = () => {
                                 <span className="loading loading-dots loading-lg text-yellow-400 "></span>
                             </h1>
                         </>  :
-                        filtered.length > 0 &&
-                        filtered.map((client, index) => (
+                        filtered?.length  &&
+                        filtered?.map((client, index) => (
                             <button 
                                 key={index} 
                                 onClick={() => {

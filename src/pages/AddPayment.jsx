@@ -29,7 +29,7 @@ const AddPayment = () => {
         async function getClients() {
             try {
                 const { data, error } = await supabase.from('clients_table').select(`*, payments_table(*), loans_table(*)`).eq('loans_table.is_paid', false)
-                setClients(data.filter(data => data.loans_table?.length !== 0))
+                setClients(data?.filter(data => data.loans_table?.length !== 0))
                 if(error) throw error;
                 setLoading(false)
             } catch (error) {
@@ -91,6 +91,7 @@ const AddPayment = () => {
             console.log(client)
             await supabase.from('loans_table').update({is_paid: true}).eq('id', payment.loan)
             await supabase.from('payments_table').update({is_paid: true}).eq('id', payment.id);
+            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount: payment.amount, message})
             const data = await res.json(); 
  
 
@@ -113,29 +114,27 @@ const AddPayment = () => {
             return 
         }else{
             await supabase.from('payments_table').update({is_paid: true}).eq('id', payment.id)
-            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, payment, message})
-        }
-
-        const data = await res.json(); 
- 
-
-        if(data.status === 400) {   
-            setSmsErr(true);  
+            await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount: payment.amount, message})
+            const data = await res.json(); 
+     
+    
+            if(data.status === 400) {   
+                setSmsErr(true);  
+                setPaying(false);   
+                setPayment({})
+                setClient({})
+                return  setTimeout(() => setSmsErr(false), 3000)
+            }
+            
+            setNotify(true) 
             setPaying(false);   
             setPayment({})
             setClient({})
-            return  setTimeout(() => setSmsErr(false), 3000)
-        }
-        
-        setNotify(true) 
-        setPaying(false);   
-        setPayment({})
-        setClient({})
-        setTimeout(() => { 
-            setNotify(false)
-        }, [3000]);
- 
-
+            setTimeout(() => { 
+                setNotify(false)
+            }, [3000]);
+     
+        } 
     }
 
 
@@ -282,7 +281,7 @@ const AddPayment = () => {
                                 onClick={() => { 
                                     setPayment(item)
                                 }} 
-                                className={`w-full my-2 px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between ${item.is_paid && 'hidden bg-green-300 bg-opacity-50 hover:bg-green-300 hover:bg-opacity-50'}`}
+                                className={`w-full my-2 px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between ${item.is_paid && 'bg-green-300 bg-opacity-50 hover:bg-green-300 hover:bg-opacity-50'}`}
                             >
                                 <h1>{item.date}</h1>
                                 <h1>{item.amount}</h1>

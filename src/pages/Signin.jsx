@@ -11,6 +11,7 @@ const Signin = () => {
  
     const navigate = useNavigate(); 
     const [errorLogin, setErrorLogin] = useState('');
+    
     useEffect(() => {
         const data = localStorage.getItem('sb-smoqrpjagpmjromdiwdw-auth-token')
         if(data != null) return navigate('/') 

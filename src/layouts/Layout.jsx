@@ -175,12 +175,12 @@ const NavLinks = ({navLinks, handleClick}) => {
 
     return(
         navLinks.map(({name, path, icon}, i) => (
-            <li key={i} onClick={(e) => handleClick(e)}  className={`text-xl my-1  rounded-lg ${location.pathname == path ? 'bg-slate-900 bg-opacity-10' : ''}`} > 
+            <li key={i} onClick={(e) => handleClick(e)}  className={`text-xl my-1 cursor-pointer  rounded-lg ${location.pathname == path ? 'bg-slate-900 bg-opacity-10' : ''}`} > 
                 <NavLink to={`${path}`}  >
                     <label htmlFor="my-drawer2">
-                        <div className="flex gap-x-4 items-center">
-                            <span>{icon}</span>
-                            <p>{name} </p>
+                        <div className="flex gap-x-4 items-center cursor-pointer">
+                            <span >{icon}</span>
+                            <p >{name} </p>
                         </div>
                     </label>  
                 </NavLink>

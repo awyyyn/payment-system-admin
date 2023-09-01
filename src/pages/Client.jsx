@@ -35,31 +35,51 @@ const Client = () => {
     });
     const [id, setId] = useState('');
     const [notify, setNotify] = useState(false)
-    const [smsErr, setSmsErr] = useState(false)
-
+    const [smsErr, setSmsErr] = useState(false) 
     const [state, setStates] = useState({
         isError: false,
         loading: false,
         tab: 0,
-    })
+        saving: false,
+        deleting: false
+    });
 
-    useEffect(() => {
-        async function getClients() {
-            try {
-                const { data, error } = await supabase.from('clients_table').select();
-                if(error) throw error
-                setClients(data);
-                setFiltered(data)
-                setLoading(false)
-            } catch (error) {
-                console.log(error)
-                setLoading(false)
-            }
+    const [action, setAction] = useState({
+        id: "",
+        fname: "",
+        lname: "",
+        mname: "",
+        addres: "",
+        contact: "",
+        email: ""
+    });
+    const [actionMessage, setActionMessage] = useState('');
+    
+    async function getClients() {
+        try {
+            const { data, error } = await supabase.from('clients_table').select();
+            if(error) throw error
+            setClients(data);
+            setFiltered(data)
+            setLoading(false)
+        } catch (error) {
+            console.log(error)
+            setLoading(false)
         }
+    }
+    useEffect(() => { 
+        getClients();  
+        const subscription = supabase.channel('any')
+            .on('postgres_changes', { event: "*", schema: "public", table: "clients_table"}, (() => getClients()))
+            .subscribe();
 
-        getClients();
-
+        return () => subscription.unsubscribe();
     }, [notify])
+
+    // useEffect(() => {
+
+
+    // }, [])
   
     useEffect(() => {
         setFiltered(clients?.filter(client => 
@@ -74,6 +94,7 @@ const Client = () => {
     
 
     const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+    const handldeActionChange = (e) => setAction(p => ({...p, [e.target.name]: e.target.value }));
 
     const infoValidation =  () => {
         if(formData.fname == ""){
@@ -103,6 +124,33 @@ const Client = () => {
         } 
     }
     
+    const infoActionValidation =  () => {
+        if(action.fname == ""){
+            setFormError(p => ({ ...p, fname: "Required Field"}))
+        }else{
+            setFormError(p => ({ ...p, fname: ""}))
+        }
+
+        if(action.lname == ""){
+            setFormError(p => ({ ...p, lname: "Required Field"}));
+        }else{
+            setFormError(p => ({ ...p, lname: ""}))
+        }
+
+        if(action.contact == ""){
+            setFormError(p => ({ ...p, contact: "Required Field"}));
+        }else if(action.contact.slice(0, 2) !== "09" || action.contact.length !== 11){
+            setFormError(p => ({ ...p, contact: "Invalid Format"}));
+        }else{
+            setFormError(p => ({ ...p, contact:""}))
+        }
+
+        if(action.address == ""){
+            setFormError(p => ({ ...p, address: "Required Field"}));
+        }else{
+            setFormError(p => ({ ...p, address: ""}));
+        } 
+    }
       
     
     function addDays(date, days){
@@ -242,6 +290,81 @@ const Client = () => {
     }
     
 
+    const handleNavigate = (id) => navigate(`/client/${id}`);
+    const handleAction = (client) => {
+        setAction({
+            addres: client.address,
+            contact: client.contact,
+            fname: client.first_name,
+            id: client.uuid,
+            lname: client.last_name,
+            mname: client.middle_name,
+            email: client?.email
+        }); 
+    }
+
+    const handleSave = () => {
+        infoActionValidation()
+    }
+
+    const handleDelete = async() => {  
+        console.log(action.id)
+        const modal = document.getElementById('my_modal_9')
+
+        setStates(p => ({...p, deleting: true}))
+
+        if(action.email){
+            try {
+                
+                const res = await fetch('http://localhost:3000/get-users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: action.email  
+                    })
+                })
+    
+                const data = await res.json();
+                console.log(data)
+                // console.log(await res.json())
+                
+                await supabase.from("clients_table").delete('*').eq('uuid', action.id);
+ 
+                setActionMessage(data.message)
+                setTimeout(() => {
+                    setActionMessage("")
+                }, 3000)
+                
+                
+            } catch (error) { 
+                console.log(error)
+    
+                setActionMessage("Network Error!")
+                setTimeout(() => {
+                    setActionMessage("")
+                }, 3000)
+            }   
+            modal.checked = false
+            setStates(p => ({...p, deleting: false}))
+        }else{
+ 
+            const { error } = await supabase.from('clients_table').delete('*').eq('uuid', action.id);
+
+            if(error){
+                setActionMessage("Server Error!")
+                setStates(p => ({...p, deleting: false}))
+                return
+            }
+
+            modal.checked = false
+            setStates(p => ({...p, deleting: false}))
+        }
+        
+        // modal.checked = false
+    }
+
     return ( 
         <Suspense fallback={<SplashScreen />}> 
             <div className={`fixed bg-green-500 right-8 md:right-10 z-[1000] top-20 px-5 py-1 rounded-md shadow-xl text-white ${notify ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
@@ -250,6 +373,14 @@ const Client = () => {
             <div className={`fixed  bg-red-600  right-8 md:right-10 z-[1000] top-20 px-5 py-1 rounded-md shadow-xl text-white ${smsErr ? 'block translate-x-0 opacity-100' : 'translate-x-10 opacity-0'} duration-700 transition-all`}>
                 Notification not sent!
             </div>
+            {actionMessage &&
+                <div className="alert alert-warning max-w-[300px] flex fixed z-[999] right-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg> 
+                    <span>{actionMessage}</span>
+                </div> 
+            }
           {/*  <div className="alert alert-error md:max-w-[300px] right-10 absolute z-[1000]">
                 <svg xmlns="http://www.w3.org/2000/svg" className="stroke-stone-100 shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -265,21 +396,22 @@ const Client = () => {
                     <BiSolidUserPlus />
                     Add Client
                 </label>}
-                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md border border-stone-300 focus:input-warning focus:shadow-none w-full max-w-xs" />
+                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md border border-stone-300 focus:input-warning focus:shadow-none w-full sm:max-w-xs" />
             </div>
             {/* <div className="flex justify-between md:pr-20 fixed right-0 pr-5 w-full"> 
                  
                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" /> 
             </div>   */}
-            <div className="overflow-x-auto  md:px-20 p-5 pt-8 pb-10  "> 
-                <table className="table shadow-xl overflow-hidden">
+            <div className="overflow-x-auto overflow-y-visible  md:px-20  mt-10  pb-24 z-[20]  "> 
+                <table className="table shadow-xl">
                     {/* head */}
-                    <thead className="bg-[#21461A] text-white">
+                    <thead className="bg-[#21461A] text-white sticky top-0">
                         <tr> 
                             <th>Client Name</th>
                             <th>Client Contact</th>
                             <th>Address</th>
                             <th>Date Joined</th>
+                            <th className="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -291,28 +423,189 @@ const Client = () => {
                                     <td className="min-w-[180px]"><span className="loading loading-dots loading-xs"></span></td>
                                     <td className="min-w-[200px]"><span className="loading loading-dots loading-xs"></span></td>
                                     <td><span className="loading loading-dots loading-xs"></span></td> 
+                                    <td><span className="loading loading-dots loading-xs"></span></td> 
                                 </tr>
                             ))
                             :
                             filtered?.length ?
-                                filtered?.map(client => ( 
-                                    <tr key={client.uuid} className="hover:bg-[#21461A20] cursor-pointer" onClick={() => navigate(`/client/${client.uuid}`)}>
-                                        <td>{`${client.first_name} ${client.last_name}`}</td>
-                                        <td className="min-w-[180px]">{client.contact}</td>
-                                        <td className="min-w-[200px]">{client.address}</td>
-                                        <td >{new Date(client.created_at).toLocaleDateString()}</td>  
+                                filtered?.map((client, index) => ( 
+                                    <tr key={client.uuid} className="cursor-pointer" >
+                                        <td /* onClick={() => handleNavigate(client.uuid)} */ >{`${client.first_name} ${client.last_name}`}</td>
+                                        <td /* onClick={() => handleNavigate(client.uuid)} */ className="min-w-[180px]">{client.contact}</td>
+                                        <td /* onClick={() => handleNavigate(client.uuid)} */ className="min-w-[200px]">{client.address}</td>
+                                        <td /* onClick={() => handleNavigate(client.uuid)} */ >{new Date(client.created_at).toLocaleDateString()}</td>  
+                                        <td className="hover:bg-yellow-100 p-0 px-4">
+                                            <div className={`dropdown w-full ${filtered.length > 5 && (filtered.length - 3) < (index + 1) ? 'dropdown-top dropdown-end' : 'dropdown-end'} `}>
+                                                <label tabIndex={0} className="h-full cursor-pointer flex items-center gap-x-2 justify-center">
+                                                    <span>Actions</span> 
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                                    </svg> 
+                                                </label>
+                                                <ul tabIndex={0} className="dropdown-content z-[999] shadow-2xl menu p-2 bg-base-100 rounded-box w-52">
+                                                    <li onClick={() => handleNavigate(client.uuid)}> 
+                                                        <a>View</a>
+                                                    </li>
+                                                    <li onClick={() => handleAction(client)}>
+                                                        <label htmlFor="my_modal_8">Edit</label>
+                                                    </li>
+                                                    <li onClick={() => handleAction(client)}>
+                                                        <label htmlFor="my_modal_9" className="text-red-600 hover:bg-red-600 hover:text-white active:bg-transparent bg-transparent active:border-red-600">Delete</label>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
                                     </tr> 
                                 ))
                             :
-                            <tr className="hover:bg-[#21461A20] cursor-pointer"> 
-                                <td colSpan={4} className="text-center">Not Found</td>
+                            <tr className=" cursor-pointer"> 
+                                <td colSpan={5} className="text-center">{filtered.length ? 'Not found' : '0 Record'}</td>
                             </tr>
 
                         }
                     </tbody>
                 </table>
             </div>
+ 
+            
+            <input type="checkbox" id="my_modal_8" className="modal-toggle" />
+            <div className="modal">
+                <div className="modal-box  max-w-min">
+                    <h3 className="font-bold text-lg">Edit account</h3>
+                    <div className="max-h-[400px] overflow-y-scroll px-2">
+                        {/* F NAME */}
+                        <div className="form-control w-full max-w-min">
+                            <label className="label">
+                                <span className="label-text">First Name</span> 
+                            </label>
+                            <input 
+                                onFocus={() => setFormError(p => ({...p, fname: ""}))}
+                                value={action.fname}
+                                name="fname"
+                                onChange={handldeActionChange}
+                                type="text" placeholder="First Name" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
+                                <label className="label">
+                                    {formError.fname && 
+                                        <span className="label-text text-error">{formError.fname}</span>  
+                                    }
+                                </label>
+                        </div>
+                        
+                        {/* M NAME */}
+                        <div className="form-control w-full max-w-min ">
+                            <label className="label">
+                                <span className="label-text">Middle Name</span> 
+                            </label>
+                            <input 
+                                onFocus={() => setFormError(p => ({...p, fname: ""}))}
+                                value={action.mname}
+                                name="fname"
+                                onChange={handldeActionChange}
+                                type="text" placeholder="Middle Name" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
+                                <label className="label">
+                                    {formError.fname && 
+                                        <span className="label-text text-error">{formError.mname}</span>  
+                                    }
+                                </label>
+                        </div>
 
+                        {/* L NAME */} 
+                        <div className="form-control w-full max-w-min">
+                            <label className="label">
+                                <span className="label-text">Last Name</span> 
+                            </label>
+                            <input 
+                                onFocus={() => setFormError(p => ({...p, lname: ""}))}
+                                value={action.lname}
+                                name="lname"
+                                onChange={handldeActionChange}
+                                type="text" placeholder="Last Name" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
+                                <label className="label">
+                                    {formError.fname && 
+                                        <span className="label-text text-error">{formError.fname}</span>  
+                                    }
+                                </label>
+                        </div>
+                         
+                         {/* CONTACT */}
+                         <div className="form-control w-full max-w-min">
+                                <label className="label">
+                                    <span className="label-text">Contact Number</span> 
+                                </label>
+                                <input 
+                                    onFocus={() => setFormError(p => ({...p, contact: ""}))}
+                                    value={action.contact}
+                                    name="contact"
+                                    onChange={(e) => { 
+                                        if(/^\d+$/.test(e.target.value)){
+                                            if(e.target.value.length < 12){
+                                                setAction(p => ({
+                                                    ...p,
+                                                    contact: e.target.value
+                                                }))
+                                            }
+                                        }else if(e.target.value.length <= 1){
+                                            setAction(p => ({
+                                                ...p,
+                                                contact: ''
+                                            }))
+                                        }
+                                    }}
+                                    type="text" placeholder="098764254321" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
+                                    <label className="label">
+                                        {formError.contact && 
+                                            <span className="label-text text-error">{formError.contact}</span>  
+                                        }
+                                    </label>
+                        </div>
+                         
+                        {/* ADDRESS */} 
+                        <div className="form-control w-full max-w-min">
+                            <label className="label">
+                                <span className="label-text">Address</span> 
+                            </label>
+                            <input 
+                                onFocus={() => setFormError(p => ({...p, fname: ""}))}
+                                value={action.addres}
+                                name="addres"
+                                onChange={handldeActionChange}
+                                type="text" placeholder="Address" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
+                                <label className="label">
+                                    {formError.fname && 
+                                        <span className="label-text text-error">{formError.fname}</span>  
+                                    }
+                                </label>
+                        </div>
+                    </div>
+                    <div className="modal-action">
+                        <label htmlFor="my_modal_8" className="btn min-w-[100px] hover:bg-yellow-200">Cancel</label>
+                        <button onClick={handleSave} className="btn min-w-[100px] bg-green-600  hover:bg-green-800 text-white">
+                            {/* <span className="loading"></span> */}
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+ 
+ 
+            <input type="checkbox" id="my_modal_9" className="modal-toggle" />
+            <div className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Delete account</h3>
+                    <p className="py-4">Do you really want to delete <span className="font-bold">{action.fname} {action.lname}</span> account?</p> 
+                    <div className="modal-action">
+                        <label htmlFor="my_modal_9" className="btn min-w-[100px] hover:bg-yellow-200">Cancel</label>
+                        <button onClick={handleDelete} className="btn min-w-[100px] bg-red-600 hover:bg-transparent hover:text-red-600 hover:border hover:border-red-600 text-white">
+                            {state.deleting ? 
+                                <span className="loading"></span>:
+                                "Delete"
+                            }
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* ADD CLIENT DIALOG */}
             <input type="checkbox" id="my_modal_1" className="modal-toggle" /> 
             <div  className="modal">
                 <div className="modal-box max-w-min overflow-hidden">  
