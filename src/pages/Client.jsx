@@ -36,6 +36,7 @@ const Client = () => {
     const [id, setId] = useState('');
     const [notify, setNotify] = useState(false)
     const [smsErr, setSmsErr] = useState(false) 
+    const [phone, setPhone] = useState('') 
     const [state, setStates] = useState({
         isError: false,
         loading: false,
@@ -49,7 +50,7 @@ const Client = () => {
         fname: "",
         lname: "",
         mname: "",
-        addres: "",
+        address: "",
         contact: "",
         email: ""
     });
@@ -67,6 +68,7 @@ const Client = () => {
             setLoading(false)
         }
     }
+
     useEffect(() => { 
         getClients();  
         const subscription = supabase.channel('any')
@@ -94,7 +96,7 @@ const Client = () => {
     
 
     const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
-    const handldeActionChange = (e) => setAction(p => ({...p, [e.target.name]: e.target.value }));
+    const handleActionChange = (e) => setAction(p => ({...p, [e.target.name]: e.target.value }));
 
     const infoValidation =  () => {
         if(formData.fname == ""){
@@ -292,8 +294,9 @@ const Client = () => {
 
     const handleNavigate = (id) => navigate(`/client/${id}`);
     const handleAction = (client) => {
+        setPhone(client?.contact)
         setAction({
-            addres: client.address,
+            address: client.address,
             contact: client.contact,
             fname: client.first_name,
             id: client.uuid,
@@ -303,8 +306,68 @@ const Client = () => {
         }); 
     }
 
-    const handleSave = () => {
+    const handleSave = async() => {
         infoActionValidation()
+        setStates(p => ({...p, saving: true}))
+        const modal = document.getElementById('my_modal_8')
+        try {
+            
+            if(formError.address || formError.contact  || action.contact.length != 11 || formError.fname || formError.lname) { 
+                return null
+            }else{ 
+                 
+                if(phone != action.contact){
+
+                    const { data } = await supabase.from('clients_table')
+                        .select()
+                        .eq('contact', action.contact)
+
+
+                    console.log(data)
+
+                    if(data.length > 0){
+                        setStates(p => ({...p, isError: true})); 
+                        setTimeout(() => {
+                            setStates(p => ({...p, isError: false})); 
+                        }, 5000)
+                        setStates(p => ({...p, saving: false}))
+                        return 
+                    } 
+                    setStates(p => ({...p, saving: false}))
+                }
+                    // .or(`contact.${formData.contact}`) 
+                // .or('id.eq.2,name.eq.Algeria')
+          
+                
+                const { data: clientData, error } = await supabase.from('clients_table').update({
+                    first_name: action.fname,
+                    last_name: action.lname,
+                    middle_name: action.mname,
+                    contact: action.contact,
+                    address: action.address, 
+                }).eq('uuid', action.id).select()
+    
+                if(error) {
+                    setStates(p => ({
+                        ...p, 
+                        saving: false, 
+                    }))
+                    return console.log(error)
+                }
+    
+                setId(clientData.uuid)
+    
+                console.log("UPDATE", clientData)
+                modal.checked = false
+                setStates(p => ({
+                    ...p, 
+                    saving: false, 
+                }))
+            } 
+        } catch (error) {
+            console.log(error)
+            setStates(p => ({...p, saving: false}))
+        }
     }
 
     const handleDelete = async() => {  
@@ -357,7 +420,11 @@ const Client = () => {
                 setStates(p => ({...p, deleting: false}))
                 return
             }
-
+            setActionMessage("Deleted Successfully!")
+            setTimeout(() => {
+                setActionMessage("")
+            }, 3000)
+            
             modal.checked = false
             setStates(p => ({...p, deleting: false}))
         }
@@ -402,8 +469,8 @@ const Client = () => {
                  
                <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" /> 
             </div>   */}
-            <div className="overflow-x-auto overflow-y-visible  md:px-20  mt-10  pb-24 z-[20]  "> 
-                <table className="table shadow-xl">
+            <div className="overflow-x-auto overflow-y-visible  md:px-20  mt-10  pb-32 z-[20]  "> 
+                <table className="table shadow-xl overflow-visible">
                     {/* head */}
                     <thead className="bg-[#21461A] text-white sticky top-0">
                         <tr> 
@@ -469,10 +536,14 @@ const Client = () => {
  
             
             <input type="checkbox" id="my_modal_8" className="modal-toggle" />
-            <div className="modal">
-                <div className="modal-box  max-w-min">
+            <div className="modal overflow-x-hidden">
+                <div className="modal-box  max-w-min overflow-x-hidden">
                     <h3 className="font-bold text-lg">Edit account</h3>
-                    <div className="max-h-[400px] overflow-y-scroll px-2">
+                    <div className="max-h-[400px] overflow-y-scroll px-2 ">
+                        <div className={`alert alert-error absolute max-w-[350px] ${state.isError ? '-right-20' : '-right-full'} transition-all duration-1000 top-3`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span className="">Contact number is taken!</span>
+                        </div>
                         {/* F NAME */}
                         <div className="form-control w-full max-w-min">
                             <label className="label">
@@ -482,7 +553,7 @@ const Client = () => {
                                 onFocus={() => setFormError(p => ({...p, fname: ""}))}
                                 value={action.fname}
                                 name="fname"
-                                onChange={handldeActionChange}
+                                onChange={handleActionChange}
                                 type="text" placeholder="First Name" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
                                 <label className="label">
                                     {formError.fname && 
@@ -499,8 +570,8 @@ const Client = () => {
                             <input 
                                 onFocus={() => setFormError(p => ({...p, fname: ""}))}
                                 value={action.mname}
-                                name="fname"
-                                onChange={handldeActionChange}
+                                name="mname"
+                                onChange={handleActionChange}
                                 type="text" placeholder="Middle Name" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
                                 <label className="label">
                                     {formError.fname && 
@@ -518,7 +589,7 @@ const Client = () => {
                                 onFocus={() => setFormError(p => ({...p, lname: ""}))}
                                 value={action.lname}
                                 name="lname"
-                                onChange={handldeActionChange}
+                                onChange={handleActionChange}
                                 type="text" placeholder="Last Name" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
                                 <label className="label">
                                     {formError.fname && 
@@ -566,9 +637,9 @@ const Client = () => {
                             </label>
                             <input 
                                 onFocus={() => setFormError(p => ({...p, fname: ""}))}
-                                value={action.addres}
-                                name="addres"
-                                onChange={handldeActionChange}
+                                value={action.address}
+                                name="address"
+                                onChange={handleActionChange}
                                 type="text" placeholder="Address" className="input min-w-[80vw] md:min-w-[350px] input-bordered focus:input-warning w-full max-w-xs" /> 
                                 <label className="label">
                                     {formError.fname && 
@@ -580,8 +651,11 @@ const Client = () => {
                     <div className="modal-action">
                         <label htmlFor="my_modal_8" className="btn min-w-[100px] hover:bg-yellow-200">Cancel</label>
                         <button onClick={handleSave} className="btn min-w-[100px] bg-green-600  hover:bg-green-800 text-white">
-                            {/* <span className="loading"></span> */}
-                            Save Changes
+                            {state.saving ? 
+                                <span className="loading"></span>
+                                :
+                                "Save Changes"
+                            }
                         </button>
                     </div>
                 </div>
@@ -594,6 +668,7 @@ const Client = () => {
                     <h3 className="font-bold text-lg">Delete account</h3>
                     <p className="py-4">Do you really want to delete <span className="font-bold">{action.fname} {action.lname}</span> account?</p> 
                     <div className="modal-action">
+                        
                         <label htmlFor="my_modal_9" className="btn min-w-[100px] hover:bg-yellow-200">Cancel</label>
                         <button onClick={handleDelete} className="btn min-w-[100px] bg-red-600 hover:bg-transparent hover:text-red-600 hover:border hover:border-red-600 text-white">
                             {state.deleting ? 

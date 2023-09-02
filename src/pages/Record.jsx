@@ -105,7 +105,7 @@ export default function Record() {
             <label className="label">
               <span className="label-text">Email Address</span> 
             </label>
-            <input type="text" value={loading ? '...' : client?.email} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+            <input type="text" value={loading ? '...' : client?.email ? client?.email : ''} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
           </div>
 
 
@@ -120,14 +120,28 @@ export default function Record() {
             <label className="label">
               <span className="label-text">Amount Loan</span> 
             </label>
-            <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ? loan?.amount_loan : 0}`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+            <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ? loan?.amount_loan : ""}`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          </div>
+          
+          <div className="form-control w-full max-w-xs ">
+            <label className="label">
+              <span className="label-text">Interest (19%)</span> 
+            </label>
+            <input type="text" value={loading ? '...' : `₱ ${Number(loan?.amount_loan) * 0.19}`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+          </div>
+
+          <div className="form-control w-full max-w-xs">
+            <label className="label">
+              <span className="label-text">Total Amount </span> 
+            </label>
+            <input type="text" value={loading ? '...' : `₱ ${loan?.total_amount ? loan?.total_amount : ""}`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
           </div>
 
           <div className="form-control w-full max-w-xs">
             <label className="label">
               <span className="label-text">Principal </span> 
             </label>
-            <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ?  loan.amount_loan - total : 0 }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+            <input type="text" value={loading ? '...' : `₱ ${loan?.amount_loan ?  loan.total_amount - total : "" }`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
           </div>
 
         </div> 
@@ -210,7 +224,7 @@ export default function Record() {
                       client?.loans_table?.map(loan => (
                         <tr key={loan.id}> 
                           <td className="text-center">{loading ? '...' : new Date(loan.created_at).toDateString()}</td>
-                          <td className="text-center">{loading ? '...' : `₱ ${loan.amount_loan}`}</td> 
+                          <td className="text-center">{loading ? '...' : `₱ ${loan.total_amount}`}</td> 
                           <td className={` ${loan?.is_paid ? 'text-green-700' : 'text-red-500'} font-bold`}>{loading ? '...' : loan.is_paid ? 'Paid' : 'Pending'}</td> 
                         </tr> 
                       ))
