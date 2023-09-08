@@ -37,7 +37,9 @@ const AddPayment = () => {
                 setLoading(false)
             }
         } 
+
         getClients(); 
+
     }, [])
 
     useEffect(() => {
@@ -58,6 +60,7 @@ const AddPayment = () => {
      
 
     const handleSubmit = async () => { 
+        if(paying) return 
         if(!client.first_name) setErr((p) => ({...p, nameErr: true, contactErr: true}))  
         if(err.amountErr || err.nameErr || !payment.id) { 
             return 
@@ -214,7 +217,7 @@ const AddPayment = () => {
                                 </label>
                             }
                         </div>
-                        <button className="btn w-full bg-yellow-300 hover:bg-yellow-200 mt-4 max-w-xs" onClick={handleSubmit}>
+                        <button disabled={paying} className="btn disabled:cursor-progress w-full bg-yellow-300 hover:bg-yellow-200 mt-4 max-w-xs" onClick={handleSubmit}>
                             {paying ? <> 
                                 <span className="loading loading-spinner"></span>   
                                 loading
@@ -244,11 +247,20 @@ const AddPayment = () => {
                         </>  :
                         filtered.length > 0 &&
                         filtered.map((client, index) => (
-                            <button key={index} onClick={() => {
-                                handleSelect(client)
-                                setPayment({})
-                            }} className={`w-full px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between`}>
+                            <button 
+
+                                key={index} 
+
+                                onClick={() => {
+                                    handleSelect(client)
+                                    setPayment({})
+                                }} 
+
+                                className={`w-full px-4 capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between`}
+
+                            >
                                 {`${client.first_name} ${client.middle_name && client.middle_name} ${client.last_name}`}
+
                             </button>
                         ))
                     }
@@ -273,8 +285,8 @@ const AddPayment = () => {
                                 <span className="loading loading-dots loading-lg text-yellow-400 "></span>
                             </h1>
                         </>  :
-                        paymentsInfo.length > 0 &&
-                        paymentsInfo.map((item, index) => (
+                        paymentsInfo?.length > 0 &&
+                        paymentsInfo?.map((item, index) => (
                             <button 
                                 key={index} 
                                 disabled={item.is_paid}

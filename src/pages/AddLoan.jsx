@@ -74,6 +74,7 @@ const AddLoan = () => {
     }
 
     const handleSubmit = async () => { 
+        if(paying) return console.log("CREATING")
         if(!client.first_name) setErr((p) => ({...p, nameErr: true, contactErr: true})) 
         amountValidation(amount)
         if(err.amountErr || err.nameErr) { 
@@ -227,7 +228,7 @@ const AddLoan = () => {
                                 </label>
                             }
                         </div>
-                        <button disabled={!amount || !client.first_name ? true : false}  className="btn w-full  bg-yellow-300 hover:bg-yellow-200 mt-4 max-w-xs" onClick={handleSubmit}>
+                        <button disabled={!amount || !client.first_name ? true : false}  className="btn w-full bg-yellow-300 hover:bg-yellow-200 mt-4 max-w-xs" onClick={handleSubmit}>
                             {paying ? <> 
                                 <span className="loading loading-spinner"></span>   
                                 loading
