@@ -43,10 +43,7 @@ const Layout = () => {
             email: decryptedData.email,
             role: decryptedData.role,
         }) 
-
-
-        // setUserData({})
-            
+ 
     }, [path])
  
 
@@ -126,8 +123,7 @@ const Layout = () => {
         drawer.removeAttribute('checked')
         // console.log(drawer.hasAttribute('checked')) 
         console.log(drawer.checked = false)
-    }
-    console.log(isOpen)
+    } 
 
 
 
@@ -138,7 +134,11 @@ const Layout = () => {
                     <input id="my-drawer-3" type="checkbox"   className="drawer-toggle" /> 
                     <div className="drawer-content flex flex-col">
                         {/* Navbar */} 
-                        <Header handleClick={() => setIsOpen(true)} /> 
+                        <Header 
+                            
+                            handleClick={() => setIsOpen(true)} 
+                            role={userData.role == "collector" ? "Collector" : "Administrator"}
+                        /> 
                         {/* Page content here */}
                         <div className="px-5 py-10 mt-12 md:mt-0 w-screen md:w-auto ">
                             <Outlet />

@@ -1,6 +1,7 @@
 import logo from '../assets/logo.png' 
 
-const Header = ({handleClick}) => {
+const Header = ({handleClick, role}) => {
+
     return (
         <div className="navbar bg-base-100  fixed md:hidden shadow-md">
             <div className="navbar-start"> 
@@ -9,7 +10,7 @@ const Header = ({handleClick}) => {
                 </label> 
             </div>
             <div className="navbar-end">
-                <a className="btn btn-ghost normal-case text-xl">Administrator</a> 
+                <a className="btn btn-ghost normal-case text-xl">{role}</a> 
                 <img src={logo} className='h-10 w-10' />  
             </div> 
         </div>
