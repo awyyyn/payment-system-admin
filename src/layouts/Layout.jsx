@@ -134,7 +134,7 @@ const Layout = () => {
                     <input id="my-drawer-3" type="checkbox"   className="drawer-toggle" /> 
                     <div className="drawer-content flex flex-col">
                         {/* Navbar */} 
-                        <Header 
+                        <Header  
                             
                             handleClick={() => setIsOpen(true)} 
                             role={userData.role == "collector" ? "Collector" : "Administrator"}

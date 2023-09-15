@@ -220,13 +220,13 @@ const Client = () => {
         try {
             setCreating(true)
             const phone = formData.contact.slice(1) 
-            const res = await fetch('https://twilio-sms-ow78.onrender.com/send-sms', {
+            const res = await fetch('https://red-hilarious-worm.cyclic.cloud/send-sms', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    number: `63${phone}`, 
+                    number: `+63${phone}`, 
                     message
                 })
             });
@@ -379,7 +379,7 @@ const Client = () => {
         if(action.email){
             try {
                 
-                const res = await fetch('http://localhost:3000/get-users', {
+                const res = await fetch('https://red-hilarious-worm.cyclic.cloud/get-users', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

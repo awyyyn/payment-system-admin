@@ -104,13 +104,13 @@ const Notify = () => {
                                                     console.log(message)
                                                     try {
                                                         const phone = client.contact.slice(1) 
-                                                        const res = await fetch('https://twilio-sms-ow78.onrender.com/send-sms', {
+                                                        const res = await fetch('https://red-hilarious-worm.cyclic.cloud/send-sms', {
                                                             method: 'POST',
                                                             headers: {
                                                                 'Content-Type': 'application/json'
                                                             },
                                                             body: JSON.stringify({
-                                                                number: `63${phone}`, 
+                                                                number: `+63${phone}`, 
                                                                 message
                                                             })
                                                         });
