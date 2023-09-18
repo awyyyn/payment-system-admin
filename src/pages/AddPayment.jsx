@@ -93,7 +93,7 @@ const AddPayment = () => {
             console.log(payment.loan)
             console.log(client)
             await supabase.from('loans_table').update({is_paid: true}).eq('id', payment.loan)
-            await supabase.from('payments_table').update({is_paid: true}).eq('id', payment.id);
+            await supabase.from('payments_table').update({is_paid: true, created_at: new Date().toISOString()}).eq('id', payment.id);
             await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount: payment.amount, message})
             const data = await res.json(); 
  
@@ -116,7 +116,7 @@ const AddPayment = () => {
 
             return 
         }else{
-            await supabase.from('payments_table').update({is_paid: true}).eq('id', payment.id)
+            await supabase.from('payments_table').update({is_paid: true, created_at: new Date().toISOString()}).eq('id', payment.id)
             await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount: payment.amount, message})
             const data = await res.json(); 
      
@@ -245,7 +245,7 @@ const AddPayment = () => {
                                 <span className="loading loading-dots loading-lg text-yellow-400 "></span>
                             </h1>
                         </>  :
-                        filtered.length > 0 &&
+                        filtered.length ?
                         filtered.map((client, index) => (
                             <button 
 
@@ -262,7 +262,10 @@ const AddPayment = () => {
                                 {`${client.first_name} ${client.middle_name && client.middle_name} ${client.last_name}`}
 
                             </button>
-                        ))
+                        )) :
+                        <h1 className="text-center  ">
+                            No Records Exist
+                        </h1>
                     }
                 </form>
             </dialog>

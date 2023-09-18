@@ -127,7 +127,7 @@ export default function Record() {
             <label className="label">
               <span className="label-text">Interest (19%)</span> 
             </label>
-            <input type="text" value={loading ? '...' : `₱ ${Number(loan?.amount_loan) * 0.19}`} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
+            <input type="text" value={loading ? '...' : loan?.amount_loan ? `₱ ${Number(loan?.amount_loan) * 0.19}` : '₱ '} className="input input-bordered w-full max-w-xs shadow-lgz" disabled />
           </div>
 
           <div className="form-control w-full max-w-xs">

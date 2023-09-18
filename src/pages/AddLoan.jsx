@@ -96,10 +96,8 @@ const AddLoan = () => {
                     message
                 })
             });
-
-            console.log(total)
-            const data = await res.json(); 
-            console.log(data)
+ 
+            const data = await res.json();  
 
             /* INSERT DATA TO LOANS_TABLE */
             const { data: loanRes } = await supabase.from('loans_table').insert({client_id: client.uuid, amount_loan: amount, total_amount: total}).select().single()
@@ -256,7 +254,7 @@ const AddLoan = () => {
                                 <span className="loading loading-dots loading-lg text-yellow-400 "></span>
                             </h1>
                         </>  :
-                        filtered?.length  &&
+                        filtered?.length  ?
                         filtered?.map((client, index) => (
                             <button 
                                 key={index} 
@@ -267,7 +265,10 @@ const AddLoan = () => {
                                 className={`w-full px-4  capitalize py-2 rounded-lg gap-y-3  cursor-pointer btn-ghost flex items-center justify-between`}>
                                 {`${client.first_name} ${client.middle_name && client.middle_name} ${client.last_name}`}
                             </button>
-                        ))
+                        )) :
+                        <h1 className="text-center  ">
+                            No Records Exist
+                        </h1>
                     }
                 </form>
             </dialog>

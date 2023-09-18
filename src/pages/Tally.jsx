@@ -21,10 +21,11 @@ const Tally = () => {
                 setClients(cleintData)
                 const { data, error } = await supabase.from('payments_table').select().neq('is_paid', false);
                 if(error) throw error  
-                const data2 = data?.filter((item) => new Date(item?.created_at).toISOString().split('T')[0] == currentDate) 
+                const data2 = data?.filter((item) => item.created_at.split('T')[0] == currentDate) 
                 const values = data2.map(i => i.amount)
                 setTotal(values.reduce((a, b) => a + b , 0))
-                
+                  
+                 
                 setPaid(data2); 
                 setLoading(false) 
             } catch (error) { 
@@ -37,8 +38,7 @@ const Tally = () => {
 
     }, [])
  
-
-    console.log(clients)
+ 
 
     // useEffect(() => {
     //     setFiltered(clients?.filter(client => client.first_name.toLowerCase().includes(search.toLowerCase()) || client.last_name.toLowerCase().includes(search.toLowerCase()) ))

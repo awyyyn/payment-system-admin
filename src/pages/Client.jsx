@@ -76,12 +76,9 @@ const Client = () => {
             .subscribe();
 
         return () => subscription.unsubscribe();
+
     }, [notify])
-
-    // useEffect(() => {
-
-
-    // }, [])
+ 
   
     useEffect(() => {
         setFiltered(clients?.filter(client => 
@@ -164,7 +161,7 @@ const Client = () => {
 
     const handleNext = useCallback(async() => {
         infoValidation()
-        if(formError.address || formError.contact  || formData.contact.length != 11 || formError.fname || formError.lname) { 
+        if(formError.address || formError.contact  || formData.contact.length != 11 || formData.contact.slice(0, 2) != "09" || formError.fname || formError.lname) { 
             return null
         }else{
             setStates(p => ({...p, loading: true}))
@@ -216,6 +213,9 @@ const Client = () => {
  
 
     const handleCreate = async() => {
+ 
+
+        const modal = document.getElementById('my_modal_1')
         const message = `Your application for ${totalLoan} pesos loan has been approved. ${new Date().toLocaleString()}.`
         try {
             setCreating(true)
@@ -231,8 +231,7 @@ const Client = () => {
                 })
             });
 
-            const data = await res.json();
-            console.log(data) 
+            const data = await res.json(); 
 
             /* INSERT DATA TO LOANS_TABLE */
             const { data: loanRes } = await supabase.from('loans_table').insert({client_id: id, amount_loan: formData.loanAmount, total_amount: totalLoan}).select().single()
@@ -258,14 +257,33 @@ const Client = () => {
             /* SMS ERROR */
             if(data.status === 400) {   
                 setCreating(false)
+                modal.checked = false
                 setSmsErr(true);   
+                setFormData({
+                    address: "",
+                    contact: "",
+                    fname: "",
+                    lname: "",
+                    loanAmount: "",
+                    mname: ""
+                })
+                setStates({
+                    tab: 0  
+                })
                 return  setTimeout(() => setSmsErr(false), 3000)
             }
+
+            setFormData({
+                address: "",
+                contact: "",
+                fname: "",
+                lname: "",
+                loanAmount: "",
+                mname: ""
+            })
             
             setCreating(false)
-            const modal = document.getElementById('my_modal_1')
-            modal.checked = false
-            console.log(modal.classList)
+            modal.checked = false 
             setNotify(true);
             setStates({
                 tab: 0  
@@ -286,6 +304,17 @@ const Client = () => {
 
 
         }catch(err){
+            setFormData({
+                address: "",
+                contact: "",
+                fname: "",
+                lname: "",
+                loanAmount: "",
+                mname: ""
+            })
+            setStates({
+                tab: 0  
+            })
             setCreating(false)
             console.log(err);
         }
@@ -308,13 +337,13 @@ const Client = () => {
 
     const handleSave = async() => {
         infoActionValidation()
-        setStates(p => ({...p, saving: true}))
         const modal = document.getElementById('my_modal_8')
         try {
             
-            if(formError.address || formError.contact  || action.contact.length != 11 || formError.fname || formError.lname) { 
+            if(formError.address || formError.contact  || action.contact.length != 11  || action.contact.slice(0, 2) != "09" || formError.fname || formError.lname) { 
                 return null
             }else{ 
+                setStates(p => ({...p, saving: true}))
                  
                 if(phone != action.contact){
 
@@ -371,6 +400,7 @@ const Client = () => {
     }
 
     const handleDelete = async() => {  
+
         console.log(action.id)
         const modal = document.getElementById('my_modal_9')
 
@@ -427,8 +457,7 @@ const Client = () => {
             
             modal.checked = false
             setStates(p => ({...p, deleting: false}))
-        }
-        
+        } 
         // modal.checked = false
     }
 
@@ -684,7 +713,17 @@ const Client = () => {
             <input type="checkbox" id="my_modal_1" className="modal-toggle" /> 
             <div  className="modal">
                 <div className="modal-box max-w-min overflow-hidden">  
-                    <label htmlFor="my_modal_1" onClick={() => setStates(p => ({...p, tab: 0}))} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
+                    <label htmlFor="my_modal_1" onClick={() => {
+                        setFormData({
+                            address: "",
+                            contact: "",
+                            fname: "",
+                            lname: "",
+                            loanAmount: "",
+                            mname: ""
+                        })
+                        setStates(p => ({...p, tab: 0}))
+                    }} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</label>
                     <div className="flex gap-x-2"> 
                         <h3 className="font-bold text-xl mb-1">{state.tab == 0 ? "Personal Information" : "Loan Information"}</h3>
                         <div className={`alert alert-error absolute max-w-[350px] ${state.isError ? '-right-20' : '-right-full'} transition-all duration-1000 top-3`}>
