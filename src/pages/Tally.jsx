@@ -1,8 +1,8 @@
 import { Suspense, useEffect, useState } from "react"
 import supabase from '../lib/supabase' 
-import { SplashScreen } from "../components";
-
- 
+import { SplashScreen } from "../components";   
+import { Link } from "react-router-dom";
+  
 
 const Tally = () => {
  
@@ -10,7 +10,7 @@ const Tally = () => {
     const [loading, setLoading] = useState(true);
     const [clients, setClients] = useState([]);
     const [paid, setPaid] = useState([])
-    const [total, setTotal] = useState(false);
+    const [total, setTotal] = useState(false);  
 
     useEffect(() => {
         async function getClients() {  
@@ -47,14 +47,29 @@ const Tally = () => {
     
     // console.log(new Date().toISOString()) 
 
+     
+
     return ( 
         <Suspense fallback={<SplashScreen />}> 
             {/* <div className="flex justify-end md:px-20">
                 <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search here..." className="input shadow-md focus:input-warning focus:shadow-none w-full max-w-xs" />
             </div>   */} 
-            <h1 className="text-left text-xl md:text-4xl font-bold leading-8 md:px-20  px-5 ">
-                Reports 
-            </h1> 
+            <div className="flex justify-between md:px-20  px-5 ">
+                <h1 className="text-left text-xl md:text-4xl font-bold leading-8 ">
+                    Reports 
+                </h1>  
+                <Link to={'/pdf'} target="_blank" className="btn btn-outline text-warning-focus">
+                    Open PDF
+                </Link>
+                {/* <Butt
+                    document={<MyDocument />}
+                    fileName="reports.pdf"
+                    className="btn btn-accent text-white"   
+
+                >
+                    Download
+                </Butt> */}
+            </div> 
             <div className="overflow-x-auto  md:px-20 mt-10 p-5 pb-10  ">  
                  
                 <table className="table shadow-xl overflow-hidden">

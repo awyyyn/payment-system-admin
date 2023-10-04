@@ -14,6 +14,7 @@ import Tally from "./pages/Tally"
 import Notify from "./pages/Notify" 
 import { CorpContext } from "./context/AppContext"
 import Notfound from "./pages/Notfound" 
+import ReportsPdf from "./pages/ReportsPdf"
 
 function App() {
   
@@ -66,6 +67,10 @@ function App() {
           element: <Notify />
         },
       ]
+    },
+    {
+      path: '/pdf',
+      element: <ReportsPdf />
     },
     {
       path: '/sign-in',

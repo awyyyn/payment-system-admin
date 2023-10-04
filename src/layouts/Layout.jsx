@@ -78,7 +78,7 @@ const Layout = () => {
             name: 'Reports',
             path: '/tally',
             icon: <TbTallymarks />
-        },
+        }
     ]
 
     const collectorLinks = [
@@ -107,7 +107,7 @@ const Layout = () => {
             name: 'Reports',
             path: '/tally',
             icon: <TbTallymarks />
-        },
+        }
     ] 
 
     const handleSignOut = async() => { 
