@@ -15,6 +15,7 @@ const AddLoan = () => {
     const [loading, setLoading] = useState(true); 
     const [paying, setPaying] = useState(false);
     const [search, setSearch] = useState("");
+    const [month, setMonth] = useState(1)
     const [client, setClient] = useState({});
     const [amount, setAmount] = useState(""); 
     const [notify, setNotify] = useState(false);
@@ -73,6 +74,19 @@ const AddLoan = () => {
         return dateCopy.toDateString()
     }
 
+    async function insertToDB(num, id, uuid, amount, date, is_paid = false) {
+        const dayDate = addDays(Date.now(), Number(date) * 15 + 1) 
+        await supabase.from('payments_table')
+            .insert({
+                num, 
+                loan: id, 
+                amount:  amount,
+                client_id: uuid, 
+                is_paid, 
+                date: dayDate
+            })
+    }
+
     const handleSubmit = async () => { 
         if(paying) return console.log("CREATING")
         if(!client.first_name) setErr((p) => ({...p, nameErr: true, contactErr: true})) 
@@ -81,8 +95,9 @@ const AddLoan = () => {
             return 
         } 
         setPaying(true); 
+        const weeks = month * 2
         const total = Math.floor((Number(amount) * 0.19)) + Number(amount);
-        const fixedAmount = Math.floor(total / 7)
+        const fixedAmount = Math.floor(total / weeks)
         const message = `Your application for ${amount} pesos loan has been approved. ${new Date().toLocaleString()}.`
         try {
             const phone = client.contact.slice(1) 
@@ -100,22 +115,26 @@ const AddLoan = () => {
             const data = await res.json();  
 
             /* INSERT DATA TO LOANS_TABLE */
-            const { data: loanRes } = await supabase.from('loans_table').insert({client_id: client.uuid, amount_loan: amount, total_amount: total}).select().single()
+            const { data: loanRes } = await supabase.from('loans_table').insert({client_id: client.uuid, amount_loan: amount, total_amount: total, month}).select().single()
+
+            for(let i = 1; i <= weeks; i++) {
+                insertToDB(i, loanRes.id, client.uuid, fixedAmount, i)
+            }
             
-            await supabase.from('payments_table')
-                .insert({num: 1, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 16)})
-            await supabase.from('payments_table')
-                .insert({num: 2, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 31)})
-            await supabase.from('payments_table')
-                .insert({num: 3, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 46)})
-            await supabase.from('payments_table')
-                .insert({num: 4, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 61)})
-            await supabase.from('payments_table')
-                .insert({num: 5, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 76)})
-            await supabase.from('payments_table')
-                .insert({num: 6, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 91)})
-            await supabase.from('payments_table')
-                .insert({num: 7, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 106)})
+            // await supabase.from('payments_table')
+            //     .insert({num: 1, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 16)})
+            // await supabase.from('payments_table')
+            //     .insert({num: 2, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 31)})
+            // await supabase.from('payments_table')
+            //     .insert({num: 3, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 46)})
+            // await supabase.from('payments_table')
+            //     .insert({num: 4, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 61)})
+            // await supabase.from('payments_table')
+            //     .insert({num: 5, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 76)})
+            // await supabase.from('payments_table')
+            //     .insert({num: 6, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 91)})
+            // await supabase.from('payments_table')
+            //     .insert({num: 7, loan: loanRes.id, amount:  fixedAmount, client_id: client.uuid, is_paid: false, date: addDays(Date.now(), 106)})
              
             await supabase.from('sms_notifications_table')
                 .insert({
@@ -168,6 +187,7 @@ const AddLoan = () => {
   
                 <div className=" min-h-[500px]  pt-4  ">
                     <div className="w-full flex flex-wrap flex-col gap-y-5 h-full md:mt-20 items-center justify-center"> 
+                    
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
                                 <span className="label-text">Name</span> 
@@ -187,6 +207,7 @@ const AddLoan = () => {
                                 </label>
                             }
                         </div>
+
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
                                 <span className="label-text">Contact Number</span> 
@@ -205,6 +226,7 @@ const AddLoan = () => {
                                 </label>
                             }
                         </div>
+                       
                         
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
@@ -226,6 +248,22 @@ const AddLoan = () => {
                                 </label>
                             }
                         </div>
+ 
+                        <div className="form-control w-full max-w-xs">
+                            <label
+                                className="label"
+                            >
+                                <span className="label-text">Months</span> 
+                            </label>
+                            <input 
+                                type="text" 
+                                value={month}
+                                onChange={(e) => setMonth(e.target.value)}
+                                placeholder="Type here" 
+                                className="input input-bordered focus:input-warning w-full max-w-xs" 
+                            />
+                        </div>
+
                         <button disabled={!amount || !client.first_name ? true : false}  className="btn w-full bg-yellow-300 hover:bg-yellow-200 mt-4 max-w-xs" onClick={handleSubmit}>
                             {paying ? <> 
                                 <span className="loading loading-spinner"></span>   
@@ -272,6 +310,8 @@ const AddLoan = () => {
                     }
                 </form>
             </dialog>
+
+            
         </Suspense>
     )
 }

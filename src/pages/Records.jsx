@@ -70,7 +70,7 @@ const Records = () => {
                                 </tr>
                             ))
                             :
-                            filtered.length ?
+                            filtered?.length ?
                                 filtered?.map(client => ( 
                                     <tr key={client.uuid} className="hover:bg-[#21461A20] cursor-pointer" onClick={() => navigate(`/records/${client.uuid}`)}>
                                         <td>{`${client.first_name} ${client.last_name}`}</td>

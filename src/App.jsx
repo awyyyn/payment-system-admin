@@ -15,6 +15,8 @@ import Notify from "./pages/Notify"
 import { CorpContext } from "./context/AppContext"
 import Notfound from "./pages/Notfound" 
 import ReportsPdf from "./pages/ReportsPdf"
+import Register from "./pages/Register"
+import AddCollector from "./pages/AddCollector"
 
 function App() {
   
@@ -41,7 +43,11 @@ function App() {
         {
           path: '/clients', 
           element: <Client />
-        }, 
+        },  
+        {
+          path: '/add-collector', 
+          element: <AddCollector />
+        },  
         // {
         //   path: '/payment-ledger',
         //   element: <PaymentLedger />
@@ -76,6 +82,10 @@ function App() {
       path: '/sign-in',
       element: <Signin />
     },
+    {
+      path: '/register', 
+      element: <Register />
+    }, 
     {
       path: '*',
       element: <Notfound />
@@ -120,7 +130,11 @@ function App() {
     {
       path: '*',
       element: <Notfound />
-    }
+    },
+    {
+      path: '/register', 
+      element: <Register />
+    }, 
   ]);
  
 

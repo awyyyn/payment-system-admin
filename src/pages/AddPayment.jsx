@@ -1,12 +1,14 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import supabase from "../lib/supabase";
 import { SplashScreen } from "../components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; 
+import { CorpContext } from "../context/AppContext";
 
  
 
 const AddPayment = () => {
 
+    const { userData } = useContext(CorpContext) 
     const navigate = useNavigate()
     const [clients, setClients] = useState([]);
     const [filtered, setFiltered] = useState(clients);
@@ -60,6 +62,12 @@ const AddPayment = () => {
      
 
     const handleSubmit = async () => { 
+
+            
+        const date = new Date();
+
+        const timeP = new Date(date.getTime()).toLocaleTimeString()
+
         if(paying) return 
         if(!client.first_name) setErr((p) => ({...p, nameErr: true, contactErr: true}))  
         if(err.amountErr || err.nameErr || !payment.id) { 
@@ -93,7 +101,7 @@ const AddPayment = () => {
             console.log(payment.loan)
             console.log(client)
             await supabase.from('loans_table').update({is_paid: true}).eq('id', payment.loan)
-            await supabase.from('payments_table').update({is_paid: true, created_at: new Date().toISOString()}).eq('id', payment.id);
+            await supabase.from('payments_table').update({is_paid: true, created_at: new Date().toISOString(), collected_by: userData?.name, time_collected: timeP  }).eq('id', payment.id);
             await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount: payment.amount, message})
             const data = await res.json(); 
  
@@ -116,7 +124,7 @@ const AddPayment = () => {
 
             return 
         }else{
-            await supabase.from('payments_table').update({is_paid: true, created_at: new Date().toISOString()}).eq('id', payment.id)
+            await supabase.from('payments_table').update({is_paid: true, created_at: new Date().toISOString(), collected_by: userData?.name, time_collected: timeP}).eq('id', payment.id)  
             await supabase.from('sms_notifications_table').insert({client_id: client.uuid, amount: payment.amount, message})
             const data = await res.json(); 
      
@@ -139,6 +147,8 @@ const AddPayment = () => {
      
         } 
     }
+
+
 
 
 
@@ -245,8 +255,8 @@ const AddPayment = () => {
                                 <span className="loading loading-dots loading-lg text-yellow-400 "></span>
                             </h1>
                         </>  :
-                        filtered.length ?
-                        filtered.map((client, index) => (
+                        filtered?.length ?
+                        filtered?.map((client, index) => (
                             <button 
 
                                 key={index} 
