@@ -40,6 +40,7 @@ const Layout = () => {
 		// localStorage.setItem("name", decryptedData?.name);
 		setActiveName(localStorage.getItem("name"));
 		setUserData({
+			id: decryptedData?.id,
 			name: decryptedData?.name,
 			email: decryptedData?.email,
 			role: decryptedData?.role,

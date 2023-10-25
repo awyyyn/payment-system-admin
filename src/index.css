@@ -2,17 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-
 .modal {
-    /* padding-inline: 20px; */
+	/* padding-inline: 20px; */
 }
 
-.modal-client::-webkit-scrollbar{
-    width: 10px;
+.modal-client::-webkit-scrollbar {
+	width: 10px;
 }
-.modal-client::-webkit-scrollbar-track{
-    width: #123;
+.modal-client::-webkit-scrollbar-track {
+	width: #123;
 }
-.modal-client::-webkit-scrollbar-thumb{
-    width: rgb(0, 120, 239);
+.modal-client::-webkit-scrollbar-thumb {
+	width: rgb(0, 120, 239);
+}
+
+@layer components {
+	.td-item {
+		@apply md:text-base;
+	}
+	.td-header {
+		@apply font-bold;
+	}
 }

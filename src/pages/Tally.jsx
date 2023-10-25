@@ -1,11 +1,15 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import supabase from "../lib/supabase";
 import { SplashScreen } from "../components";
-import { Link } from "react-router-dom";
+import { Link /* useNavigate */, useNavigate } from "react-router-dom";
+import { CorpContext } from "../context/AppContext";
 
 const Tally = () => {
+	// const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
+	const { userData } = useContext(CorpContext);
 	const [clients, setClients] = useState([]);
+	const navigate = useNavigate();
 	const [paid, setPaid] = useState([]);
 	const [total, setTotal] = useState(false);
 
@@ -13,16 +17,30 @@ const Tally = () => {
 		async function getClients() {
 			const currentDate = new Date().toISOString().split("T")[0];
 			const collector_name = localStorage.getItem("name");
+			let data;
+			let error;
 
 			try {
 				const { data: cleintData } = await supabase
 					.from("clients_table")
 					.select("uuid, first_name, last_name, middle_name");
 				setClients(cleintData);
-				const { data, error } = await supabase
-					.from("payments_table")
-					.select()
-					.eq("collected_by", collector_name);
+
+				if (userData?.role == "collector") {
+					const { data: cData, error: cError } = await supabase
+						.from("payments_table")
+						.select()
+						.eq("collected_by", collector_name);
+					data = cData;
+					error = cError;
+				} else {
+					const { data: aData, error: aError } = await supabase
+						.from("payments_table")
+						.select();
+					data = aData;
+					error = aError;
+				}
+
 				if (error) throw error;
 				const data2 = data?.filter(
 					(item) => item.created_at.split("T")[0] == currentDate
@@ -30,6 +48,7 @@ const Tally = () => {
 				const values = data2.map((i) => i.amount);
 				setTotal(values.reduce((a, b) => a + b, 0));
 				setPaid(data2);
+				console.log(paid.length);
 				setLoading(false);
 			} catch (error) {
 				console.log(error);
@@ -58,20 +77,13 @@ const Tally = () => {
 				<h1 className="text-left text-xl md:text-4xl font-bold leading-8 ">
 					Reports
 				</h1>
+
 				<Link
+					className="btn btn-outline text-warning-focus"
 					to={"/pdf"}
-					target="_blank"
-					className="btn btn-outline text-warning-focus">
+					target="_blank">
 					Open PDF
 				</Link>
-				{/* <Butt
-                    document={<MyDocument />}
-                    fileName="reports.pdf"
-                    className="btn btn-accent text-white"   
-
-                >
-                    Download
-                </Butt> */}
 			</div>
 			<div className="overflow-x-auto  md:px-20 mt-10 p-5 pb-10  ">
 				<table className="table shadow-xl overflow-hidden">
@@ -79,7 +91,7 @@ const Tally = () => {
 					<thead className="bg-[#21461A] text-white">
 						<tr>
 							<th>Client Name</th>
-							<th>Collected By</th>
+							{userData?.role != "collector" && <th>Collected By</th>}
 							<th>Time Collected</th>
 							<th>Date</th>
 							<th>Amount</th>
@@ -93,9 +105,11 @@ const Tally = () => {
 									<td className="min-w-[180px]">
 										<span className="loading loading-dots loading-xs"></span>
 									</td>
-									<td className="min-w-[180px]">
-										<span className="loading loading-dots loading-xs"></span>
-									</td>
+									{userData?.role != "collector" && (
+										<td className="min-w-[180px]">
+											<span className="loading loading-dots loading-xs"></span>
+										</td>
+									)}
 									<td className="min-w-[180px]">
 										<span className="loading loading-dots loading-xs"></span>
 									</td>
@@ -118,7 +132,13 @@ const Tally = () => {
 										key={pay.id}
 										className="hover:bg-[#21461A20] cursor-pointer">
 										<td className="min-w-[200px]">{`${name?.first_name}  ${name?.middle_name}   ${name?.last_name}`}</td>
-										<td className="min-w-[200px]">{`${pay?.collected_by}`}</td>
+										{userData?.role != "collector" && (
+											<td
+												className="min-w-[200px]"
+												onClick={() => {
+													navigate(`/collector-history/${pay.collected_by_id}`);
+												}}>{`${pay?.collected_by}`}</td>
+										)}
 										<td className="min-w-[200px]">{`${pay?.time_collected}`}</td>
 										<td className="min-w-[200px]">
 											{new Date(pay.created_at).toDateString()}
@@ -130,7 +150,7 @@ const Tally = () => {
 							})
 						) : (
 							<tr className="hover:bg-[#21461A20] cursor-pointer">
-								<td colSpan={3} className="text-center text-lg">
+								<td colSpan={5} className="text-center text-lg">
 									No collection this day
 								</td>
 							</tr>
@@ -138,7 +158,9 @@ const Tally = () => {
 						<tr className="hover:bg-[#21461A20] cursor-pointer">
 							{total ? (
 								<>
-									<td className="min-w-[200px]" colSpan={4}>
+									<td
+										className="min-w-[200px]"
+										colSpan={userData?.role != "collector" ? 4 : 3}>
 										Total
 									</td>
 									<td className="min-w-[180px]">₱ {total ? total : 0}</td>
