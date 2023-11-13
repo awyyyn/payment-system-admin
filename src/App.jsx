@@ -118,6 +118,10 @@ function App() {
 					element: <Record />,
 				},
 				{
+					path: "/loan-history/:id",
+					element: <ClientRecord />,
+				},
+				{
 					path: "/create-payment",
 					element: <AddPayment />,
 				},

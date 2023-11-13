@@ -126,6 +126,16 @@ export default function CollectorHistory() {
 							})
 						)}
 					</tbody>
+					<tfoot>
+						<tr>
+							<td colSpan={4} className="td-item pt-5">
+								Total Collected Amount
+							</td>
+							<td className="td-item   pt-5">
+								₱ {history.reduce((total, item) => total + item.amount, 0)}
+							</td>
+						</tr>
+					</tfoot>
 				</table>
 			</div>
 		</div>
