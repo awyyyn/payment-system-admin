@@ -255,14 +255,18 @@ export default function ReportsPdf() {
 						.from("payments_table")
 						.select()
 						.eq("collected_by", cName.name);
-					data = cData;
+					data = cData
+						.filter((item) => item.time_collected != null)
+						.filter((item) => item.collected_by != null);
 					error = cError;
 					console.log(data, "CCCCCCCCCCCCCCCCCCC");
 				} else {
 					const { data: aData, error: aError } = await supabase
 						.from("payments_table")
 						.select();
-					data = aData;
+					data = aData
+						.filter((item) => item.time_collected != null)
+						.filter((item) => item.collected_by != null);
 					console.log(data, "AAAAAAAAAAAAAAAAAAAA");
 					error = aError;
 				}

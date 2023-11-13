@@ -50,7 +50,7 @@ export default function AddCollector() {
 
 		const { data: db, error: dbErr } = await supabase
 			.from("lending_corp")
-			.insert({ name: form.name, role: "collector" })
+			.insert({ name: form.name, role: "collector", email: form.email })
 			.select();
 
 		if (error) {

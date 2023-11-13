@@ -6,6 +6,7 @@ import { CorpContext } from "../context/AppContext";
 
 const AddPayment = () => {
 	const { userData } = useContext(CorpContext);
+	console.log(localStorage.getItem("name"), "asdasd");
 	const navigate = useNavigate();
 	const [clients, setClients] = useState([]);
 	const [filtered, setFiltered] = useState(clients);
@@ -31,6 +32,13 @@ const AddPayment = () => {
 					.select(`*, payments_table(*), loans_table(*)`)
 					.eq("loans_table.is_paid", false);
 				setClients(data?.filter((data) => data.loans_table?.length !== 0));
+
+				// console.log(data.length, "a");
+				console.log(
+					data.filter((i) => i.loans_table == true),
+					"a"
+				);
+				console.log(data.filter((i) => i.is_paid == true).length);
 				if (error) throw error;
 				setLoading(false);
 			} catch (error) {
@@ -71,6 +79,9 @@ const AddPayment = () => {
 	};
 
 	const handleSubmit = async () => {
+		const exeee = client.payments_table.filter(
+			(i) => i.loan == client.loans_table[0].id
+		).length;
 		const date = new Date();
 
 		const timeP = new Date(date.getTime()).toLocaleTimeString();
@@ -83,14 +94,11 @@ const AddPayment = () => {
 		}
 		setPaying(true);
 		let message;
-		if (payment.num == 7) {
+		if (payment.num == exeee) {
 			message = `Congratulations! Your loan has been fully paid. Thank you for choosing Bicol's Amigo.`;
 		} else {
 			message = `You paid ${payment.amount} pesos  amount ${payment.date}.`;
 		}
-		console.log(payment.num);
-		console.log(message);
-
 		// // setPaying(false)
 		const phone = client.contact.slice(1);
 		const res = await fetch(
@@ -107,7 +115,7 @@ const AddPayment = () => {
 			}
 		);
 
-		if (payment.num == 7) {
+		if (payment.num == exeee) {
 			console.log(payment.loan);
 			console.log(client);
 			await supabase
@@ -119,15 +127,18 @@ const AddPayment = () => {
 				.update({
 					is_paid: true,
 					created_at: new Date().toISOString(),
-					collected_by: userData?.name,
+					collected_by: localStorage.getItem("name"),
 					time_collected: timeP,
-					collected_by_id: userData.id,
+					collected_by_id: localStorage.getItem("id"),
 				})
 				.eq("id", payment.id);
+
 			await supabase
 				.from("sms_notifications_table")
 				.insert({ client_id: client.uuid, amount: payment.amount, message });
+
 			const data = await res.json();
+			navigate(`/client/${client.uuid}`);
 
 			if (data.status === 400) {
 				setSmsErr(true);
@@ -136,7 +147,6 @@ const AddPayment = () => {
 				setClient({});
 				return setTimeout(() => setSmsErr(false), 3000);
 			}
-			navigate(`/client/${client.uuid}`);
 			setNotify(true);
 			setPaying(false);
 			setPayment({});

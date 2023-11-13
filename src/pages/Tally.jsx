@@ -31,13 +31,17 @@ const Tally = () => {
 						.from("payments_table")
 						.select()
 						.eq("collected_by", collector_name);
-					data = cData;
+					data = cData
+						.filter((item) => item.time_collected != null)
+						.filter((item) => item.collected_by != null);
 					error = cError;
 				} else {
 					const { data: aData, error: aError } = await supabase
 						.from("payments_table")
 						.select();
-					data = aData;
+					data = aData
+						.filter((item) => item.time_collected != null)
+						.filter((item) => item.collected_by != null);
 					error = aError;
 				}
 
@@ -59,6 +63,7 @@ const Tally = () => {
 		getClients();
 	}, []);
 
+	console.log(paid, "Paid");
 	// useEffect(() => {
 	//     setFiltered(clients?.filter(client => client.first_name.toLowerCase().includes(search.toLowerCase()) || client.last_name.toLowerCase().includes(search.toLowerCase()) ))
 	// clients?.filter(client => String(client.first_name).toLowerCase().includes(String(search).toLowerCase()) || String(client.last_name).toLowerCase().includes(String(search).toLower()))

@@ -91,6 +91,7 @@ const Signin = () => {
 		).toString();
 		localStorage.setItem("encryptedData", encryptedData);
 		localStorage.setItem("name", userDataRes.name);
+		localStorage.setItem("id", userDataRes.id);
 		setVerifying(false);
 		navigate("/", { replace: true });
 	};
